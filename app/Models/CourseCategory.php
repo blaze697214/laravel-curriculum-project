@@ -14,7 +14,8 @@ class CourseCategory extends Model
         'scheme_id',
         'name',
         'order_no',
-        'abbreviation'
+        'abbreviation',
+        'is_elective'
     ];
 
     /*

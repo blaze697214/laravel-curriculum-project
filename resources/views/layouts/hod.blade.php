@@ -12,7 +12,7 @@
 <body class="flex bg-slate-100 font-sans">
 
     <!-- Sidebar -->
-    <div class="w-64 h-screen bg-slate-900 text-slate-200 flex flex-col justify-between fixed">
+    <div class="w-55 h-screen bg-slate-900 text-slate-200 flex flex-col justify-between fixed">
 
         <div>
 
@@ -41,16 +41,49 @@
                     Dashboard
                 </a>
 
+                @if(auth()->user()->department->type == 'service')
+
+                <a href="/hod/courses/view" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    View Courses
+                </a>
+                
+                @else
                 <h4 class="px-6 py-2 text-xs uppercase text-slate-400 mt-4">
-                        Users
+                    Scheme Details
                 </h4>
 
-                <a href="/hod/users/moderator" class="block px-6 py-3 hover:bg-slate-800 transition">
-                    Moderator
+                <a href="/hod/courses/create" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Courses
+                </a>
+                <a href="/hod/courses/view" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    View Courses
                 </a>
 
+                <a href="/hod/elective-groups" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Elective Groups
+                </a>
+
+                <a href="/hod/class-award" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Class Award Courses
+                </a>
+
+                @endif
+
+                <a href="/hod/assign-courses" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Assign Courses
+                </a>
+
+
+                <h4 class="px-6 py-2 text-xs uppercase text-slate-400 mt-4">
+                    Users
+                </h4>
+
+                {{-- <a href="/hod/users/moderator" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Moderator
+                </a> --}}
+
                 <a href="/hod/users/expert" class="block px-6 py-3 hover:bg-slate-800 transition">
-                    Expert
+                    Expert Users
                 </a>
 
             </nav>
@@ -78,7 +111,7 @@
 
     <!-- Main Content -->
 
-    <div class="ml-64 flex-1 p-8 min-h-screen">
+    <div class="ml-55 flex-1 p-8 min-h-screen">
 
         <div class="bg-white shadow rounded-xl p-6 h-full overflow-auto">
 

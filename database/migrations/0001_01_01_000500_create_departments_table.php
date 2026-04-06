@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('abbreviation');
-            $table->tinyInteger('order_no');
+            $table->tinyInteger('order_no')->unique();
             $table->enum('type', ['programme', 'service'])->default('programme');
             $table->timestamps();
         });

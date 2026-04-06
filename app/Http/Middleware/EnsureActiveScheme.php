@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use App\Models\Scheme;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureActiveScheme
@@ -21,7 +22,7 @@ class EnsureActiveScheme
                 abort(400, 'Scheme context missing.');
             }
 
-            $activeScheme = CurriculumYears::where('is_active', 1)->value('id');
+            $activeScheme = Scheme::where('is_active', 1)->value('id');
 
             if ($request->scheme_id != $activeScheme) {
 

@@ -10,7 +10,7 @@ class CDCDepartmentController extends Controller
 {
     public function index()
     {
-        $departments = Department::all();
+        $departments = Department::orderBy('order_no')->get();
 
         return view('cdc.department.index',compact('departments'));
     }
@@ -21,7 +21,7 @@ class CDCDepartmentController extends Controller
             'name'=>$request->input('name'),
             'abbreviation'=>$request->input('abbreviation'),
             'type'=>$request->input('type'),
-            'order_no'=>Department::count('order_no')+1
+            'order_no'=>$request->input('order_no')
         ]);
 
         return redirect()->back();
@@ -33,10 +33,12 @@ class CDCDepartmentController extends Controller
 
         $department->update([
             'name'=>$request->input('name'),
-            'abbreviation'=>$request->input('abbreviation')
+            'abbreviation'=>$request->input('abbreviation'),
+            'order_no'=>$request->input('order_no')
+
         ]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success','Department updated successfully');
     }
 
     public function destroy($id)

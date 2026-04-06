@@ -35,7 +35,6 @@ return new class extends Migration
 
             // Prevent duplicate offering
             $table->unique(['course_master_id', 'department_id']);
-            $table->unique(['course_master_id', 'semester_no']);
         });
     }
 

@@ -2,22 +2,24 @@
 
 namespace App\Models;
 
+use Database\Factories\SchemeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Scheme extends Model
 {
-    /** @use HasFactory<\Database\Factories\SchemeFactory> */
+    /** @use HasFactory<SchemeFactory> */
     use HasFactory;
 
     protected $fillable = [
+        'name',
         'year_start',
         'year_end',
         'total_credits',
         'total_marks',
         'is_active',
         'is_locked',
-        'created_by'
+        'created_by',
     ];
 
     /*
@@ -44,6 +46,11 @@ class Scheme extends Model
         return $this->hasMany(CourseMaster::class);
     }
 
+    public function departmentStatuses()
+    {
+        return $this->hasMany(DepartmentCourseStatus::class);
+    }
+
     // Elective groups
     public function electiveGroups()
     {
@@ -51,6 +58,11 @@ class Scheme extends Model
     }
 
     // Class awards
+    public function classAwardRules()
+    {
+        return $this->hasOne(ClassAwardRule::class);
+    }
+
     public function classAwardConfigurations()
     {
         return $this->hasMany(ClassAwardConfiguration::class);

@@ -2,19 +2,20 @@
 
 namespace App\Models;
 
+use Database\Factories\ClassAwardConfigurationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ClassAwardConfiguration extends Model
 {
-    /** @use HasFactory<\Database\Factories\ClassAwardConfigurationFactory> */
+    /** @use HasFactory<ClassAwardConfigurationFactory> */
     use HasFactory;
 
     protected $fillable = [
         'department_id',
         'scheme_id',
-        'total_courses_required',
-        'created_by'
+        // 'total_courses_required',
+        'created_by',
     ];
 
     /*
@@ -43,7 +44,9 @@ class ClassAwardConfiguration extends Model
     {
         return $this->belongsToMany(
             CourseMaster::class,
-            'class_award_compulsory_courses'
+            'award_compulsory_courses',
+            'award_config_id',
+            'course_master_id'
         );
     }
 
@@ -52,7 +55,9 @@ class ClassAwardConfiguration extends Model
     {
         return $this->belongsToMany(
             ElectiveGroup::class,
-            'class_award_elective_groups'
+            'award_elective_groups',
+            'award_config_id',
+            'elective_group_id'
         );
     }
 }

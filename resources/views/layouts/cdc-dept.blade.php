@@ -12,7 +12,7 @@
 <body class="flex bg-slate-100 font-sans">
 
     <!-- Sidebar -->
-    <div class="w-64 h-screen bg-slate-900 text-slate-200 flex flex-col justify-between fixed">
+    <div class="w-55 h-screen bg-slate-900 text-slate-200 flex flex-col justify-between fixed">
 
         <div>
 
@@ -68,7 +68,7 @@
 
     <!-- Main Content -->
 
-    <div class="ml-64 flex-1 p-8 min-h-screen">
+    <div class="ml-55 flex-1 p-8 min-h-screen">
 
         <div class="bg-white shadow rounded-xl p-6 h-full overflow-auto">
 

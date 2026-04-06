@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('schemes', function (Blueprint $table) {
             $table->id();
 
+            $table->string('name');
+
             $table->year('year_start');
             $table->year('year_end');
 

@@ -37,24 +37,36 @@
             </div>
 
             <!-- Department Type -->
-            <div>
+            <div class="flex gap-10">
 
-                <label class="block text-sm font-medium text-gray-600 mb-1">
-                    Department Type
-                </label>
+                <div class="basis-1/2">
+                    <label class="block text-sm font-medium text-gray-600 mb-1">
+                        Department Order no.
+                    </label>
 
-                <select name="type"
-                    class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500">
+                    <input type="number" name="order_no" required
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
 
-                    <option value="programme">
-                        Programme Department
-                    </option>
+                </div>
 
-                    <option value="service">
-                        Service Department
-                    </option>
+                <div class="basis-1/2">
+                    <label class="block text-sm font-medium text-gray-600 mb-1">
+                        Department Type
+                    </label>
 
-                </select>
+                    <select name="type"
+                        class="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500">
+
+                        <option value="programme">
+                            Programme Department
+                        </option>
+
+                        <option value="service">
+                            Service Department
+                        </option>
+
+                    </select>
+                </div>
 
             </div>
 
@@ -85,7 +97,7 @@
                     <tr>
 
                         <th class="px-4 py-3 text-sm font-semibold text-gray-600">
-                            ID
+                            Order
                         </th>
 
                         <th class="px-4 py-3 text-sm font-semibold text-gray-600">
@@ -115,19 +127,22 @@
                         <tr class="hover:bg-gray-50 border-gray-200">
 
                             <td class="px-4 py-3">
-                                {{ $department->id }}
-                            </td>
-
-                            <td class="px-4 py-3">
-
                                 <form method="POST" action="{{ route('cdc.departments.update', $department->id) }}"
                                     class="flex items-center gap-3">
 
                                     @csrf
                                     @method('PUT')
+                                    <input type="number" name="order_no" value="{{ $department->order_no }}"
+                                        class="border border-gray-300 rounded px-2 py-1 w-15">
 
-                                    <input type="text" name="name" value="{{ $department->name }}"
-                                        class="border border-gray-300 rounded px-2 py-1 w-60">
+                            </td>
+
+                            <td class="px-4 py-3">
+
+
+
+                                <input type="text" name="name" value="{{ $department->name }}"
+                                    class="border border-gray-300 rounded px-2 py-1 w-60">
                             </td>
 
                             <td class="px-4 py-3">

@@ -18,12 +18,14 @@ return new class extends Migration
                   ->constrained('schemes')
                   ->cascadeOnDelete();
 
-            $table->string('name'); 
+            $table->string('name');
             // e.g. Basic Science, Core, Elective, IKS
 
             $table->string('abbreviation');
 
-            $table->unsignedTinyInteger('order_no'); 
+            $table->boolean('is_elective')->default(false);
+
+            $table->unsignedTinyInteger('order_no');
             // 🔥 used in course code (4th digit)
 
             $table->timestamps();

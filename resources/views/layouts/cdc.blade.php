@@ -12,7 +12,7 @@
 <body class="flex bg-slate-100 font-sans">
 
     <!-- Sidebar -->
-    <div class="w-64 h-screen bg-slate-900 text-slate-200 flex flex-col justify-between fixed">
+    <div class="w-55 h-screen bg-slate-900 text-slate-200 flex flex-col justify-between fixed">
 
         <div>
 
@@ -40,6 +40,27 @@
                 <a href="/cdc/departments" class="block px-6 py-3 hover:bg-slate-800 transition">
                     Departments
                 </a>
+
+                <h4 class="px-6 py-2 text-xs uppercase text-slate-400 mt-4">
+                        Scheme
+                </h4>
+
+                <a href="/cdc/schemes/create" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Create Scheme
+                </a>
+                <a href="/cdc/schemes/edit" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Edit Scheme
+                </a>
+                <a href="/cdc/schemes/manage" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Manage Scheme
+                </a>
+                <a href="/cdc/schemes/verify" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Verify Scheme
+                </a>
+
+                <h4 class="px-6 py-2 text-xs uppercase text-slate-400 mt-4">
+                    Users   
+                </h4>
 
                 <a href="/cdc/users" class="block px-6 py-3 hover:bg-slate-800 transition">
                     Users
@@ -72,7 +93,7 @@
 
     <!-- Main Content -->
 
-    <div class="ml-64 flex-1 p-8 min-h-screen">
+    <div class="ml-55 flex-1 p-8 min-h-screen">
 
         <div class="bg-white shadow rounded-xl p-6 h-full overflow-auto">
 

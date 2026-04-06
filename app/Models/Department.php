@@ -2,21 +2,21 @@
 
 namespace App\Models;
 
+use Database\Factories\DepartmentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Department extends Model
 {
-    /** @use HasFactory<\Database\Factories\DepartmentFactory> */
+    /** @use HasFactory<DepartmentFactory> */
     use HasFactory;
-
 
     protected $fillable = [
         'name',
         'order_no',
         'abbreviation',
         'type',
-        'created_by'
+        'created_by',
     ];
 
     /*
@@ -24,7 +24,6 @@ class Department extends Model
     | Relationships
     |--------------------------------------------------------------------------
     */
-
 
     // Users in this department
     public function users()
@@ -48,6 +47,11 @@ class Department extends Model
     public function courseOfferings()
     {
         return $this->hasMany(CourseOffering::class);
+    }
+
+    public function courseStatuses()
+    {
+        return $this->hasMany(DepartmentCourseStatus::class);
     }
 
     // Elective groups

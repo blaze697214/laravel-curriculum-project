@@ -5,6 +5,7 @@ namespace App\Http\Controllers\hod;
 use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\Role;
+use App\Models\Scheme;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,29 +13,29 @@ use Illuminate\Support\Facades\Hash;
 
 class HODUserController extends Controller
 {
-    public function moderatorIndex()
-    {
-        $roles = Role::all();
+    // public function moderatorIndex()
+    // {
+    //     $roles = Role::all();
 
-        $departments = Department::all();
+    //     $departments = Department::all();
 
-        $users = User::with(['roles', 'department'])
-            ->whereHas('roles', function ($q) {
-                $q->whereIn('name', ['moderator']);
-            })
-            ->get();
+    //     $users = User::with(['roles', 'department'])
+    //         ->whereHas('roles', function ($q) {
+    //             $q->whereIn('name', ['moderator']);
+    //         })
+    //         ->get();
 
-        return view('hod.users.moderator', compact(
-            'roles',
-            'departments',
-            'users'
-        ));
-    }
+    //     return view('hod.users.moderator', compact(
+    //         'roles',
+    //         'departments',
+    //         'users'
+    //     ));
+    // }
 
     public function expertIndex()
     {
         $roles = Role::all();
-
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
         $departments = Department::all();
 
         $users = User::with(['roles', 'department'])
@@ -45,12 +46,13 @@ class HODUserController extends Controller
 
         return view('hod.users.expert', compact(
             'roles',
+            'scheme',
             'departments',
             'users'
         ));
     }
 
-   
+
     public function store(Request $request)
     {
         $user = User::create([
@@ -68,7 +70,7 @@ class HODUserController extends Controller
         return back()->with('success', 'User created');
     }
 
- 
+
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);

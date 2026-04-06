@@ -24,7 +24,7 @@ class CourseOffering extends Model
     |--------------------------------------------------------------------------
     */
 
-    public function course()
+    public function courseMaster()
     {
         return $this->belongsTo(CourseMaster::class, 'course_master_id');
     }

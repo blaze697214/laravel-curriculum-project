@@ -16,11 +16,11 @@ class CDCUserController extends Controller
     {
         $roles = Role::all();
 
-        $departments = Department::all();
+        $departments = Department::orderBy('order_no')->get();
 
         $users = User::with(['roles', 'department'])
             ->whereHas('roles', function ($q) {
-                $q->whereIn('name', ['cdc', 'hod','cdc-dept']);
+                $q->whereIn('name', ['cdc', 'hod',/*'cdc-dept'*/]);
             })
             ->get();
 

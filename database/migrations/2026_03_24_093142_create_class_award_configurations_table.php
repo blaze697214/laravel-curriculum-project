@@ -22,7 +22,7 @@ return new class extends Migration
                 ->constrained('schemes')
                 ->cascadeOnDelete();
 
-            $table->unsignedTinyInteger('total_courses_required');
+            // $table->unsignedTinyInteger('total_courses_required');
 
             $table->foreignId('created_by')
                 ->nullable()

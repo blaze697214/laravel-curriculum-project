@@ -14,6 +14,8 @@
 
         <form method="POST" action="{{ route('hod.users.expert.store') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @csrf
+                        <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
+
 
             <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">
@@ -73,7 +75,7 @@
             </div> --}}
 
             @php
-                $department = auth()->user()->department;            
+                $department = auth()->user()->department;
             @endphp
 
             <input type="hidden" name="department_id" value="{{ $department->id }}">
