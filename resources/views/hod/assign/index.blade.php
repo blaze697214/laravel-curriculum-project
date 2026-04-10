@@ -44,12 +44,12 @@
             <thead class="bg-gray-100 text-gray-700">
                 <tr>
                     @if (auth()->user()->department->type === 'programme')
-                        <th class="px-4 py-2">Semester</th>
+                        <th class="px-4 py-2 w-10">Semester</th>
                     @endif
-                    <th class="px-4 py-2">Title</th>
+                    <th class="px-4 py-2 w-80">Title</th>
                     <th class="px-4 py-2">Abbrev</th>
                     <th class="px-4 py-2">Expert</th>
-                    <th class="px-4 py-2">Action</th>
+                    <th class="px-4 py-2 w-30">Action</th>
                 </tr>
             </thead>
 
@@ -97,7 +97,7 @@
                                     <input type="hidden" name="course_master_id" value="{{ $course->id }}">
 
                                     <select name="expert_id"
-                                        class="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
+                                        class="border border-gray-300 w-full rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500"
                                         required>
 
                                         <option value="">Select Expert</option>

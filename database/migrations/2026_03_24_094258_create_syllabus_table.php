@@ -18,7 +18,7 @@ return new class extends Migration
                 ->constrained('course_masters')
                 ->cascadeOnDelete();
 
-            $table->text('rationale');
+            $table->text('rationale')->default(null);
 
             $table->foreignId('created_by')
                 ->constrained('users')

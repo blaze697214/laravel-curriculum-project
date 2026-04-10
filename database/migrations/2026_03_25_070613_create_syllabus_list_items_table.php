@@ -22,6 +22,7 @@ return new class extends Migration
                 'objective',
                 'student_activity',
                 'instructional_activity',
+                'industrial_outcome'
             ]);
 
             $table->text('content');

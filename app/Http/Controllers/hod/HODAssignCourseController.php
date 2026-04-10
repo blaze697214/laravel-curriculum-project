@@ -54,7 +54,7 @@ class HODAssignCourseController extends Controller
             ->whereHas('roles', function ($q) {
                 $q->whereIn('name', ['expert']);
             })
-            ->where('department_id',$department)
+            ->where('department_id',$department->id)
             ->get();
 
         // =========================

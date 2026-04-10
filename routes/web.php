@@ -9,6 +9,7 @@ use App\Http\Controllers\cdc\CDCSchemeVerificationController;
 use App\Http\Controllers\cdc\CDCUserController;
 // use App\Http\Controllers\cdc_dept\CDCDEPTDashBoardController;
 use App\Http\Controllers\expert\EXPERTDashBoardController;
+use App\Http\Controllers\expert\EXPERTSyllabusController;
 use App\Http\Controllers\hod\HODAssignCourseController;
 use App\Http\Controllers\hod\HODClassAwardController;
 use App\Http\Controllers\hod\HODCourseController;
@@ -197,16 +198,16 @@ Route::middleware(['auth', 'role:hod', 'active.scheme'])->prefix('/hod')->name('
         ->name('elective.destroy');
 
     Route::get('/class-award', [HODClassAwardController::class, 'index'])
-    ->name('class_award.index');
+        ->name('class_award.index');
 
-Route::post('/class-award', [HODClassAwardController::class, 'store'])
-    ->name('class_award.store');
+    Route::post('/class-award', [HODClassAwardController::class, 'store'])
+        ->name('class_award.store');
 
     Route::get('/assign-courses', [HODAssignCourseController::class, 'index'])
-    ->name('assign.index');
+        ->name('assign.index');
 
-Route::post('/assign-courses', [HODAssignCourseController::class, 'store'])
-    ->name('assign.store');
+    Route::post('/assign-courses', [HODAssignCourseController::class, 'store'])
+        ->name('assign.store');
 
     // Route::get('/users/moderator', [HODUserController::class, 'moderatorIndex'])->name('users.moderator.index');
 
@@ -232,9 +233,77 @@ Route::post('/assign-courses', [HODAssignCourseController::class, 'store'])
 
 // });
 
-Route::middleware(['auth', 'role:expert'])->prefix('/expert')->name('expert.')->group(function () {
+Route::middleware(['auth', 'role:expert','active.scheme'])->prefix('/expert')->name('expert.')->group(function () {
 
-    Route::get('/dashboard', [EXPERTDashBoardController::class, 'dashboard']);
+    Route::get('/dashboard', [EXPERTDashBoardController::class, 'index'])->name('dashboard');
+
+    Route::prefix('/syllabus/{course}')->name('syllabus.')->group(function () {
+
+        Route::get('/preview', [EXPERTSyllabusController::class, 'preview'])
+            ->name('preview');
+
+        Route::get('/rationale', [EXPERTSyllabusController::class, 'rationale'])
+            ->name('rationale');
+
+            
+
+Route::post('/rationale', [EXPERTSyllabusController::class, 'saveRationale'])
+    ->name('rationale.save');
+
+        Route::get('/industrial-outcome', [EXPERTSyllabusController::class, 'industrialOutcome'])
+            ->name('industrial');
+
+            
+
+Route::post('/industrial-outcome', [EXPERTSyllabusController::class, 'saveIndustrialOutcome'])
+    ->name('industrial.save');
+
+        Route::get('/course-outcome', [EXPERTSyllabusController::class, 'courseOutcome'])
+            ->name('co');
+
+Route::post('/course-outcome', [EXPERTSyllabusController::class, 'saveCourseOutcome'])
+            ->name('co.save');
+
+        Route::get('/course-details', [EXPERTSyllabusController::class, 'courseDetails'])
+            ->name('details');
+        
+Route::post('/course-details', [EXPERTSyllabusController::class, 'saveCourseDetails'])
+    ->name('details.save');
+
+        Route::get('/specification', [EXPERTSyllabusController::class, 'specification'])
+            ->name('specification');
+
+        Route::get('/lab', [EXPERTSyllabusController::class, 'lab'])
+            ->name('lab');
+
+        Route::get('/self-learning', [EXPERTSyllabusController::class, 'selfLearning'])
+            ->name('self');
+
+        Route::get('/tutorial', [EXPERTSyllabusController::class, 'tutorial'])
+            ->name('tutorial');
+
+        Route::get('/instruction', [EXPERTSyllabusController::class, 'instruction'])
+            ->name('instruction');
+
+        Route::get('/assessment', [EXPERTSyllabusController::class, 'assessment'])
+            ->name('assessment');
+
+        Route::get('/books', [EXPERTSyllabusController::class, 'books'])
+            ->name('books');
+
+        Route::get('/software', [EXPERTSyllabusController::class, 'software'])
+            ->name('software');
+
+        Route::get('/equipment', [EXPERTSyllabusController::class, 'equipment'])
+            ->name('equipment');
+
+        Route::get('/mapping', [EXPERTSyllabusController::class, 'mapping'])
+            ->name('mapping');
+
+        Route::get('/question-paper', [EXPERTSyllabusController::class, 'questionPaper'])
+            ->name('qp');
+
+    });
 
 });
 

@@ -20,6 +20,8 @@ class Syllabus extends Model
         'remark'
     ];
 
+    protected $table = 'syllabus';
+
     /*
     |--------------------------------------------------------------------------
     | Relationships
