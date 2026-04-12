@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\SyllabusUnitFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SyllabusUnit extends Model
 {
-    /** @use HasFactory<\Database\Factories\SyllabusUnitFactory> */
+    /** @use HasFactory<SyllabusUnitFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -15,7 +16,7 @@ class SyllabusUnit extends Model
         'unit_no',
         'title',
         'hours',
-        'order_no'
+        'order_no',
     ];
 
     /*
@@ -35,15 +36,19 @@ class SyllabusUnit extends Model
         return $this->hasMany(UnitTopic::class);
     }
 
-    // Practical tasks (if linked)
-    public function practicalTasks()
-    {
-        return $this->hasMany(PracticalTask::class, 'unit_id');
-    }
-
     // Specification table rows
     public function specificationRows()
     {
         return $this->hasMany(SpecificationTableRow::class);
+    }
+
+    public function practicalTasks()
+    {
+        return $this->belongsToMany(
+            PracticalTask::class,
+            'practical_task_units',
+            'unit_id',
+            'practical_task_id'
+        );
     }
 }

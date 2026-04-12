@@ -12,7 +12,6 @@ class PracticalTask extends Model
 
     protected $fillable = [
         'syllabus_id',
-        'unit_id',
         'lab_learning_outcome',
         'exercise',
         'hours',
@@ -30,8 +29,13 @@ class PracticalTask extends Model
         return $this->belongsTo(Syllabus::class);
     }
 
-    public function unit()
-    {
-        return $this->belongsTo(SyllabusUnit::class, 'unit_id');
-    }
+    public function units()
+{
+    return $this->belongsToMany(
+        SyllabusUnit::class,
+        'practical_task_units',
+        'practical_task_id',
+        'unit_id'
+    );
+}
 }

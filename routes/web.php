@@ -273,8 +273,14 @@ Route::post('/course-details', [EXPERTSyllabusController::class, 'saveCourseDeta
         Route::get('/specification', [EXPERTSyllabusController::class, 'specification'])
             ->name('specification');
 
-        Route::get('/lab', [EXPERTSyllabusController::class, 'lab'])
-            ->name('lab');
+Route::post('/specification', [EXPERTSyllabusController::class, 'saveSpecification'])
+    ->name('specification.save');
+
+        Route::get('/practicals', [EXPERTSyllabusController::class, 'practicals'])
+    ->name('practicals');
+
+Route::post('/practicals', [EXPERTSyllabusController::class, 'savePracticals'])
+    ->name('practicals.save');
 
         Route::get('/self-learning', [EXPERTSyllabusController::class, 'selfLearning'])
             ->name('self');

@@ -18,11 +18,6 @@ return new class extends Migration
                 ->constrained('syllabus')
                 ->cascadeOnDelete();
 
-            $table->foreignId('unit_id')
-                ->nullable()
-                ->constrained('syllabus_units')
-                ->nullOnDelete();
-
             $table->text('lab_learning_outcome')->nullable();
 
             $table->text('exercise'); // experiment / practical description

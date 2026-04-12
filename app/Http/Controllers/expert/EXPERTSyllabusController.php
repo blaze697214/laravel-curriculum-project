@@ -7,13 +7,16 @@ use App\Models\CourseMaster;
 use App\Models\CourseOffering;
 use App\Models\CourseOutcome;
 use App\Models\Scheme;
+use App\Models\SpecificationTableRow;
 use App\Models\Syllabus;
 use App\Models\SyllabusListItem;
 use App\Models\SyllabusUnit;
 use App\Models\UnitSubtopic;
 use App\Models\UnitTopic;
+use App\Models\PracticalTask;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EXPERTSyllabusController extends Controller
 {
@@ -201,41 +204,18 @@ class EXPERTSyllabusController extends Controller
             'course_master_id' => $courseId,
         ]);
 
-        
+        // ── Eager load topics + subtopics in one query ──────────────────────
         $units = SyllabusUnit::where('syllabus_id', $syllabus->id)
-    ->orderBy('order_no')
-    ->with([
-        'topics' => function($q) {
-            $q->orderBy('order_no');
-        },
-        'topics.subtopics' => function($q) {
-            $q->orderBy('order_no');
-        }
-    ])
-    ->get();
-
-// then separate outcomes and topics in blade directly
-// $unit->topics->where('type', 'outcome')
-// $unit->topics->where('type', 'topic')
-
-        foreach ($units as $unit) {
-
-            $unit->topics = UnitTopic::where('syllabus_unit_id', $unit->id)
-                ->where('type', 'outcome')
-                ->orderBy('order')
-                ->get();
-
-            $unit->topics = UnitTopic::where('syllabus_unit_id', $unit->id)
-                ->where('type', 'topic')
-                ->orderBy('order')
-                ->get();
-
-            foreach ($unit->topics as $topic) {
-                $topic->subtopics = UnitSubtopic::where('unit_topic_id', $topic->id)
-                    ->orderBy('order')
-                    ->get();
-            }
-        }
+            ->orderBy('order_no')
+            ->with([
+                'topics' => fn ($q) => $q->orderBy('order_no'),
+                'topics.subtopics' => fn ($q) => $q->orderBy('order_no'),
+            ])
+            ->get();
+        // In blade, filter with:
+        //   $unit->topics->where('type', 'outcome')
+        //   $unit->topics->where('type', 'topic')
+        // ────────────────────────────────────────────────────────────────────
 
         return view('expert.syllabus.course_details', compact('course', 'syllabus', 'units', 'scheme'));
     }
@@ -246,16 +226,16 @@ class EXPERTSyllabusController extends Controller
             'course_master_id' => $courseId,
         ]);
 
-        $units = $request->units ?? [];
+        $units = $request->input('units', []);
 
-        // delete everything cleanly
+        // ── Delete old data cleanly ──────────────────────────────────────────
         $unitIds = SyllabusUnit::where('syllabus_id', $syllabus->id)->pluck('id');
-
         $topicIds = UnitTopic::whereIn('syllabus_unit_id', $unitIds)->pluck('id');
 
         UnitSubtopic::whereIn('unit_topic_id', $topicIds)->delete();
         UnitTopic::whereIn('syllabus_unit_id', $unitIds)->delete();
         SyllabusUnit::where('syllabus_id', $syllabus->id)->delete();
+        // ─────────────────────────────────────────────────────────────────────
 
         foreach ($units as $uIndex => $unit) {
 
@@ -268,27 +248,25 @@ class EXPERTSyllabusController extends Controller
                 'unit_no' => $uIndex + 1,
                 'title' => $unit['title'],
                 'hours' => $unit['hours'] ?? 0,
-                'order' => $uIndex + 1,
+                'order_no' => $uIndex + 1,
             ]);
 
-            // outcomes
+            // ── Save outcomes ────────────────────────────────────────────────
             foreach ($unit['outcomes'] ?? [] as $oIndex => $outcome) {
-
                 if (! trim($outcome)) {
                     continue;
                 }
 
                 UnitTopic::create([
                     'syllabus_unit_id' => $unitModel->id,
-                    'type' => 'outcome',
+                    'type' => 'learning_outcome',
                     'content' => $outcome,
-                    'order' => $oIndex + 1,
+                    'order_no' => $oIndex + 1,
                 ]);
             }
 
-            // topics
+            // ── Save topics + subtopics ──────────────────────────────────────
             foreach ($unit['topics'] ?? [] as $tIndex => $topic) {
-
                 if (! trim($topic['title'] ?? '')) {
                     continue;
                 }
@@ -297,12 +275,10 @@ class EXPERTSyllabusController extends Controller
                     'syllabus_unit_id' => $unitModel->id,
                     'type' => 'topic',
                     'content' => $topic['title'],
-                    'order' => $tIndex + 1,
+                    'order_no' => $tIndex + 1,
                 ]);
 
-                // subtopics
                 foreach ($topic['subtopics'] ?? [] as $sIndex => $sub) {
-
                     if (! trim($sub)) {
                         continue;
                     }
@@ -310,7 +286,7 @@ class EXPERTSyllabusController extends Controller
                     UnitSubtopic::create([
                         'unit_topic_id' => $topicModel->id,
                         'subtopic' => $sub,
-                        'order' => $sIndex + 1,
+                        'order_no' => $sIndex + 1,
                     ]);
                 }
             }
@@ -318,4 +294,143 @@ class EXPERTSyllabusController extends Controller
 
         return back()->with('success', 'Course Details saved successfully');
     }
+
+    public function specification($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+                $scheme = Scheme::where('is_active', true)->firstOrFail();
+
+
+        $syllabus = Syllabus::firstOrCreate([
+            'course_master_id' => $courseId,
+        ]);
+
+        // all units
+        $units = SyllabusUnit::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        // existing rows
+        $rows = SpecificationTableRow::where('syllabus_id', $syllabus->id)
+            ->get()
+            ->keyBy('syllabus_unit_id');
+
+        return view('expert.syllabus.specification', compact(
+            'course',
+            'syllabus',
+            'units',
+            'rows',
+            'scheme'
+
+        ));
+    }
+
+    public function saveSpecification(Request $request, $courseId)
+    {
+        $syllabus = Syllabus::firstOrCreate([
+            'course_master_id' => $courseId,
+        ]);
+
+        $data = $request->rows ?? [];
+
+        foreach ($data as $unitId => $row) {
+
+            $r = (int) ($row['r'] ?? 0);
+            $u = (int) ($row['u'] ?? 0);
+            $a = (int) ($row['a'] ?? 0);
+
+            SpecificationTableRow::updateOrCreate(
+                [
+                    'syllabus_id' => $syllabus->id,
+                    'syllabus_unit_id' => $unitId,
+                ],
+                [
+                    'course_outcome_id' => null, // ignored for now
+                    'remember_marks' => $r,
+                    'understand_marks' => $u,
+                    'apply_marks' => $a,
+                    'total_marks' => $r + $u + $a,
+                    'order_no' => 1,
+                ]
+            );
+        }
+
+        return back()->with('success', 'Specification Table saved');
+    }
+
+
+
+
+public function practicals($courseId)
+{
+    $course   = CourseMaster::findOrFail($courseId);
+    $scheme   = Scheme::where('is_active', true)->firstOrFail();
+
+    $syllabus = Syllabus::firstOrCreate([
+        'course_master_id' => $courseId,
+    ]);
+
+    $units = SyllabusUnit::where('syllabus_id', $syllabus->id)
+        ->orderBy('order_no')
+        ->get();
+
+    $tasks = PracticalTask::with('units')
+        ->where('syllabus_id', $syllabus->id)
+        ->orderBy('order_no')
+        ->get();
+
+    return view('expert.syllabus.practicals', compact(
+        'course',
+        'syllabus',
+        'units',
+        'tasks',
+        'scheme'
+    ));
+}
+
+public function savePracticals(Request $request, $courseId)
+{
+    $syllabus = Syllabus::firstOrCreate([
+        'course_master_id' => $courseId,
+    ]);
+
+    DB::transaction(function () use ($request, $syllabus) {
+
+        // Detach pivot rows first, then delete tasks
+        // (avoids orphaned pivot rows if DB cascade is not set)
+        $oldTasks = PracticalTask::where('syllabus_id', $syllabus->id)->get();
+        foreach ($oldTasks as $old) {
+            $old->units()->detach();
+        }
+        PracticalTask::where('syllabus_id', $syllabus->id)->delete();
+
+        foreach ($request->input('tasks', []) as $index => $taskData) {
+
+            // Skip completely empty rows
+            if (empty(trim($taskData['exercise'] ?? '')) && empty(trim($taskData['outcome'] ?? ''))) {
+                continue;
+            }
+
+            $task = PracticalTask::create([
+                'syllabus_id'          => $syllabus->id,
+                'lab_learning_outcome' => $taskData['outcome']   ?? null,
+                'exercise'             => $taskData['exercise']  ?? '',
+                'hours'                => $taskData['hours']     ?? 0,
+                'order_no'             => $index + 1,
+            ]);
+
+            // Sync units — filter to integers to prevent 'on' slipping through
+            $unitIds = array_filter(
+                array_map('intval', $taskData['units'] ?? []),
+                fn($id) => $id > 0
+            );
+
+            if (!empty($unitIds)) {
+                $task->units()->sync($unitIds);
+            }
+        }
+    });
+
+    return back()->with('success', 'Practical tasks saved');
+}
 }

@@ -14,7 +14,7 @@ class SpecificationTableRow extends Model
     protected $fillable = [
         'syllabus_id',
         'syllabus_unit_id',
-        'course_outcome_id',
+        // 'course_outcome_id',
         'remember_marks',
         'understand_marks',
         'apply_marks',

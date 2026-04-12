@@ -51,7 +51,7 @@
                     Specification Table
                 </a>
 
-                <a href="{{ route('expert.syllabus.lab', $course->id) }}"
+                <a href="{{ route('expert.syllabus.practicals', $course->id) }}"
                     class="block px-6 py-3 hover:bg-slate-800 transition">
                     Laboratory Learning
                 </a>

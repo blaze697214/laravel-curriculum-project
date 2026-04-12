@@ -23,8 +23,9 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->foreignId('course_outcome_id')
+                ->nullable()
                 ->constrained('course_outcomes')
-                ->cascadeOnDelete();
+                ->nullOnDelete();
 
             // Marks distribution (Bloom's taxonomy)
             $table->unsignedTinyInteger('remember_marks')->default(0);
@@ -40,11 +41,11 @@ return new class extends Migration
             // Prevent duplicate mapping
             $table->unique([
                 'syllabus_id',
-                'syllabus_unit_id'
+                'syllabus_unit_id',
             ]);
             $table->unique([
                 'syllabus_id',
-                'course_outcome_id'
+                'course_outcome_id',
             ]);
         });
     }
