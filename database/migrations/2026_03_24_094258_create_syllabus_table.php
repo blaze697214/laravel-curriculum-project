@@ -27,12 +27,13 @@ return new class extends Migration
             $table->enum('status', [
                 'draft',
                 'submitted',
-                'moderator_approved',
-                'moderator_rejected',
+                'rejected',
+                // 'moderator_approved',
+                // 'moderator_rejected',
                 'hod_approved',
             ])->default('draft');
 
-            $table->text('remark')->nullable();
+            $table->decimal('question_multiplier',4,2)->nullable()->default(null);
 
             $table->timestamps();
 

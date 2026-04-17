@@ -60,6 +60,11 @@ class User extends Authenticatable
         return $this->hasMany(Syllabus::class, 'created_by');
     }
 
+    public function givenRemarks()
+{
+    return $this->hasMany(SyllabusRemark::class, 'given_by');
+}
+
     /**
      * Get the attributes that should be cast.
      *

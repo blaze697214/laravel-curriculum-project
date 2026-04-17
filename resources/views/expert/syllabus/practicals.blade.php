@@ -97,13 +97,13 @@
 
     </div>
 
-
-
+{{-- 
+// ── Units list built by Blade once — reused when adding new tasks ──────
+        // value="{{ $unit->id }}" is critical — without it the checkbox submits 'on' --}}
     {{-- ================= JS ================= --}}
     <script>
 
-        // ── Units list built by Blade once — reused when adding new tasks ──────
-        // value="{{ $unit->id }}" is critical — without it the checkbox submits 'on'
+
         const UNITS_HTML = `
             @foreach ($units as $unit)
                 <label class="flex items-center gap-1 text-sm">

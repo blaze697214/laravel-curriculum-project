@@ -42,6 +42,16 @@ class SyllabusUnit extends Model
         return $this->hasMany(SpecificationTableRow::class);
     }
 
+    public function questionProfiles()
+{
+    return $this->hasMany(QuestionPaperProfile::class, 'unit_id');
+}
+
+public function questionBits()
+{
+    return $this->hasMany(QuestionBit::class, 'unit_id');
+}
+
     public function practicalTasks()
     {
         return $this->belongsToMany(

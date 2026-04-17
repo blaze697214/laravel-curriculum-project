@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\expert;
 
 use App\Http\Controllers\Controller;
+use App\Models\Book;
 use App\Models\CourseMaster;
 use App\Models\CourseOffering;
 use App\Models\CourseOutcome;
+use App\Models\Equipment;
+use App\Models\PracticalTask;
+use App\Models\QuestionBit;
+use App\Models\QuestionPaperProfile;
 use App\Models\Scheme;
 use App\Models\SpecificationTableRow;
 use App\Models\Syllabus;
@@ -13,7 +18,7 @@ use App\Models\SyllabusListItem;
 use App\Models\SyllabusUnit;
 use App\Models\UnitSubtopic;
 use App\Models\UnitTopic;
-use App\Models\PracticalTask;
+use App\Models\Website;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -175,21 +180,26 @@ class EXPERTSyllabusController extends Controller
 
         $items = $request->input('outcomes', []);
 
-        // delete old
         CourseOutcome::where('syllabus_id', $syllabus->id)->delete();
 
-        // insert new
-        foreach ($items as $index => $content) {
+        $order = 1;
+        foreach ($items as $item) {
 
-            if (trim($content)) {
+            $description = trim($item['description'] ?? '');
+            $coCode = trim($item['co_code'] ?? '');
 
-                CourseOutcome::create([
-                    'syllabus_id' => $syllabus->id,
-                    'co_code' => 'CO'.($index + 1),
-                    'description' => $content,
-                    'order_no' => $index + 1,
-                ]);
+            if (! $description) {
+                continue;
             }
+
+            CourseOutcome::create([
+                'syllabus_id' => $syllabus->id,
+                'co_code' => $coCode ?: 'CO'.$order,   // fallback if left blank
+                'description' => $description,
+                'order_no' => $order,
+            ]);
+
+            $order++;
         }
 
         return back()->with('success', 'Course Outcomes saved successfully');
@@ -234,6 +244,10 @@ class EXPERTSyllabusController extends Controller
 
         UnitSubtopic::whereIn('unit_topic_id', $topicIds)->delete();
         UnitTopic::whereIn('syllabus_unit_id', $unitIds)->delete();
+        $oldTasks = SyllabusUnit::where('syllabus_id', $syllabus->id)->get();
+        foreach ($oldTasks as $old) {
+            $old->practicalTasks()->detach();
+        }
         SyllabusUnit::where('syllabus_id', $syllabus->id)->delete();
         // ─────────────────────────────────────────────────────────────────────
 
@@ -298,8 +312,7 @@ class EXPERTSyllabusController extends Controller
     public function specification($courseId)
     {
         $course = CourseMaster::findOrFail($courseId);
-                $scheme = Scheme::where('is_active', true)->firstOrFail();
-
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
 
         $syllabus = Syllabus::firstOrCreate([
             'course_master_id' => $courseId,
@@ -358,79 +371,539 @@ class EXPERTSyllabusController extends Controller
         return back()->with('success', 'Specification Table saved');
     }
 
+    public function practicals($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
 
+        $syllabus = Syllabus::firstOrCreate([
+            'course_master_id' => $courseId,
+        ]);
 
+        $units = SyllabusUnit::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
 
-public function practicals($courseId)
-{
-    $course   = CourseMaster::findOrFail($courseId);
-    $scheme   = Scheme::where('is_active', true)->firstOrFail();
+        $tasks = PracticalTask::with('units')
+            ->where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
 
-    $syllabus = Syllabus::firstOrCreate([
-        'course_master_id' => $courseId,
-    ]);
+        return view('expert.syllabus.practicals', compact(
+            'course',
+            'syllabus',
+            'units',
+            'tasks',
+            'scheme'
+        ));
+    }
 
-    $units = SyllabusUnit::where('syllabus_id', $syllabus->id)
-        ->orderBy('order_no')
-        ->get();
+    public function savePracticals(Request $request, $courseId)
+    {
+        $syllabus = Syllabus::firstOrCreate([
+            'course_master_id' => $courseId,
+        ]);
 
-    $tasks = PracticalTask::with('units')
-        ->where('syllabus_id', $syllabus->id)
-        ->orderBy('order_no')
-        ->get();
+        DB::transaction(function () use ($request, $syllabus) {
 
-    return view('expert.syllabus.practicals', compact(
-        'course',
-        'syllabus',
-        'units',
-        'tasks',
-        'scheme'
-    ));
-}
+            // Detach pivot rows first, then delete tasks
+            // (avoids orphaned pivot rows if DB cascade is not set)
+            $oldTasks = PracticalTask::where('syllabus_id', $syllabus->id)->get();
+            foreach ($oldTasks as $old) {
+                $old->units()->detach();
+            }
+            PracticalTask::where('syllabus_id', $syllabus->id)->delete();
 
-public function savePracticals(Request $request, $courseId)
-{
-    $syllabus = Syllabus::firstOrCreate([
-        'course_master_id' => $courseId,
-    ]);
+            foreach ($request->input('tasks', []) as $index => $taskData) {
 
-    DB::transaction(function () use ($request, $syllabus) {
+                // Skip completely empty rows
+                if (empty(trim($taskData['exercise'] ?? '')) && empty(trim($taskData['outcome'] ?? ''))) {
+                    continue;
+                }
 
-        // Detach pivot rows first, then delete tasks
-        // (avoids orphaned pivot rows if DB cascade is not set)
-        $oldTasks = PracticalTask::where('syllabus_id', $syllabus->id)->get();
-        foreach ($oldTasks as $old) {
-            $old->units()->detach();
+                $task = PracticalTask::create([
+                    'syllabus_id' => $syllabus->id,
+                    'lab_learning_outcome' => $taskData['outcome'] ?? null,
+                    'exercise' => $taskData['exercise'] ?? '',
+                    'hours' => $taskData['hours'] ?? 0,
+                    'order_no' => $index + 1,
+                ]);
+
+                // Sync units — filter to integers to prevent 'on' slipping through
+                $unitIds = array_filter(
+                    array_map('intval', $taskData['units'] ?? []),
+                    fn ($id) => $id > 0
+                );
+
+                if (! empty($unitIds)) {
+                    $task->units()->sync($unitIds);
+                }
+            }
+        });
+
+        return back()->with('success', 'Practical tasks saved');
+    }
+
+    public function selfLearning($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
+
+        $syllabus = Syllabus::firstOrCreate([
+            'course_master_id' => $courseId,
+        ]);
+
+        $items = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'self_learning')
+            ->orderBy('order_no')
+            ->get();
+
+        return view('expert.syllabus.self_learning', compact(
+            'course', 'syllabus', 'items', 'scheme'
+        ));
+    }
+
+    public function saveSelfLearning(Request $request, $courseId)
+    {
+        $syllabus = Syllabus::firstOrCreate([   // consistent with GET
+            'course_master_id' => $courseId,
+        ]);
+
+        SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'self_learning')
+            ->delete();
+
+        foreach ($request->input('items', []) as $index => $item) {  // null-safe
+            if (! empty(trim($item['content'] ?? ''))) {
+                SyllabusListItem::create([
+                    'syllabus_id' => $syllabus->id,
+                    'type' => 'self_learning',
+                    'content' => $item['content'],
+                    'order_no' => $index + 1,
+                ]);
+            }
         }
-        PracticalTask::where('syllabus_id', $syllabus->id)->delete();
 
-        foreach ($request->input('tasks', []) as $index => $taskData) {
+        return back()->with('success', 'Self Learning saved');
+    }
 
-            // Skip completely empty rows
-            if (empty(trim($taskData['exercise'] ?? '')) && empty(trim($taskData['outcome'] ?? ''))) {
+    // ── In EXPERTSyllabusController ──────────────────────────────────────────────
+
+    public function tutorial($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
+
+        $syllabus = Syllabus::firstOrCreate(
+            ['course_master_id' => $courseId]
+        );
+
+        $items = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'tutorial')
+            ->orderBy('order_no')
+            ->get();
+
+        return view('expert.syllabus.tutorial', compact('course', 'syllabus', 'items', 'scheme'));
+    }
+
+    public function saveTutorial(Request $request, $courseId)
+    {
+        // Removed hard validation so saving an empty list (all removed) still works
+        $syllabus = Syllabus::firstOrCreate([   // consistent with GET, won't 404
+            'course_master_id' => $courseId,
+        ]);
+
+        SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'tutorial')
+            ->delete();
+
+        foreach ($request->input('items', []) as $index => $item) {  // null-safe
+            if (! empty(trim($item['content'] ?? ''))) {
+                SyllabusListItem::create([
+                    'syllabus_id' => $syllabus->id,
+                    'type' => 'tutorial',
+                    'content' => $item['content'],
+                    'order_no' => $index + 1,
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Tutorial items saved');
+    }
+
+    // ── In EXPERTSyllabusController ──────────────────────────────────────────────
+
+    public function instruction($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
+
+        $syllabus = Syllabus::firstOrCreate([
+            'course_master_id' => $courseId,
+        ]);
+
+        $items = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'instructional_activity')
+            ->orderBy('order_no')
+            ->get();
+
+        return view('expert.syllabus.instruction', compact('course', 'syllabus', 'items', 'scheme'));
+    }
+
+    public function saveInstruction(Request $request, $courseId)
+    {
+        $syllabus = Syllabus::firstOrCreate([    // consistent with GET, won't 404
+            'course_master_id' => $courseId,
+        ]);
+
+        SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'instructional_activity')
+            ->delete();
+
+        foreach ($request->input('items', []) as $index => $item) {  // null-safe
+            if (! empty(trim($item['content'] ?? ''))) {
+                SyllabusListItem::create([
+                    'syllabus_id' => $syllabus->id,
+                    'type' => 'instructional_activity',
+                    'content' => $item['content'],
+                    'order_no' => $index + 1,
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Instruction strategies saved');
+    }
+
+    public function books($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
+
+        $syllabus = Syllabus::firstOrCreate([
+            'course_master_id' => $courseId,
+        ]);
+
+        $books = Book::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        return view('expert.syllabus.books', compact('course', 'syllabus', 'books', 'scheme'));
+    }
+
+    public function saveBooks(Request $request, $courseId)
+    {
+        $syllabus = Syllabus::firstOrCreate([    // consistent with GET, won't 404
+            'course_master_id' => $courseId,
+        ]);
+
+        Book::where('syllabus_id', $syllabus->id)->delete();
+
+        foreach ($request->input('books', []) as $index => $book) {  // null-safe
+            if (! empty(trim($book['title'] ?? ''))) {
+                Book::create([
+                    'syllabus_id' => $syllabus->id,
+                    'title' => $book['title'],
+                    'author' => $book['author'] ?? null,
+                    'publication' => $book['publication'] ?? null,
+                    'order_no' => $index + 1,
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Books saved');
+    }
+
+    public function websites($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
+
+        $syllabus = Syllabus::firstOrCreate(
+            ['course_master_id' => $courseId]
+        );
+
+        $websites = Website::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        return view('expert.syllabus.websites', compact('course', 'syllabus', 'websites', 'scheme'));
+    }
+
+    public function saveWebsites(Request $request, $courseId)
+    {
+
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
+
+        // delete old
+        Website::where('syllabus_id', $syllabus->id)->delete();
+
+        foreach ($request->input('items', []) as $index => $item) {
+
+            if (! empty(trim($item['url'] ?? ''))) {
+                Website::create([
+                    'syllabus_id' => $syllabus->id,
+                    'url' => $item['url'],
+                    'description' => $item['description'] ?? '',
+                    'order_no' => $index + 1,
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Websites saved');
+    }
+
+    public function equipments($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
+
+        $syllabus = Syllabus::firstOrCreate(
+            ['course_master_id' => $courseId]
+        );
+
+        $equipments = Equipment::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        return view('expert.syllabus.equipments', compact('course', 'syllabus', 'equipments', 'scheme'));
+    }
+
+    public function saveEquipments(Request $request, $courseId)
+    {
+
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
+
+        Equipment::where('syllabus_id', $syllabus->id)->delete();
+
+        foreach ($request->input('items', []) as $index => $item) {
+
+            if (! empty(trim($item['equipment_name'] ?? ''))) {
+                Equipment::create([
+                    'syllabus_id' => $syllabus->id,
+                    'equipment_name' => $item['equipment_name'],
+                    'specification' => $item['specification'] ?? null,
+                    'order_no' => $index + 1,
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Equipments saved');
+    }
+
+    public function questionPaperProfile($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
+
+        $syllabus = Syllabus::firstOrCreate([
+            'course_master_id' => $courseId,
+        ]);
+
+        $units = SyllabusUnit::where('syllabus_id', $syllabus->id)
+            ->orderBy('unit_no')
+            ->get();
+
+        $specRows = SpecificationTableRow::where('syllabus_id', $syllabus->id)
+            ->get()
+            ->keyBy('syllabus_unit_id');
+
+        $courseOutcomes = CourseOutcome::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get()
+            ->values();
+
+        // ── key by unit_id now ──
+        $rows = QuestionPaperProfile::where('syllabus_id', $syllabus->id)
+            ->get()
+            ->keyBy('syllabus_unit_id');
+
+        return view('expert.syllabus.qpp', compact(
+            'course',
+            'syllabus',
+            'units',
+            'specRows',
+            'courseOutcomes',
+            'rows',
+            'scheme'
+        ));
+    }
+
+    public function saveQuestionPaperProfile(Request $request, $courseId)
+    {
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
+        $syllabus->update(['question_multiplier' => $request->multiplier ?? null]);
+
+        $data = $request->rows ?? [];
+
+        // ── Validate totals ──
+        $totalAdjusted = 0;
+        $totalActual = 0;
+
+        foreach ($data as $unitId => $row) {
+            $totalAdjusted += (int) ($row['adjusted_marks'] ?? 0);
+            $totalActual += (int) ($row['q1'] ?? 0)
+                            + (int) ($row['q2'] ?? 0)
+                            + (int) ($row['q3'] ?? 0)
+                            + (int) ($row['q4'] ?? 0)
+                            + (int) ($row['q5'] ?? 0)
+                            + (int) ($row['q6'] ?? 0);
+        }
+
+        if ($totalAdjusted !== $totalActual) {
+            return back()
+                ->withInput()
+                ->withErrors('The total of '.$syllabus->question_multiplier.' Times Marks column and Actual Distribution column must be equal.');
+        }
+
+        // ── Persist ──
+        foreach ($data as $unitId => $row) {
+
+            $spec = SpecificationTableRow::where('syllabus_id', $syllabus->id)
+                ->where('syllabus_unit_id', $unitId)
+                ->first();
+
+            $marksPerUnit = $spec->total_marks ?? 0;
+
+            // get unit_no for reference (optional, keep if still on model)
+            $unit = SyllabusUnit::find($unitId);
+
+            QuestionPaperProfile::updateOrCreate(
+                [
+                    'syllabus_id' => $syllabus->id,
+                    'syllabus_unit_id' => $unitId,           // ── FK now
+                ],
+                [
+                    'course_outcome_id' => $row['co_id'],
+                    'marks_per_unit' => $marksPerUnit,
+                    'adjusted_marks' => $row['adjusted_marks'] ?? 0,
+                    'q1_marks' => $row['q1'] ?? null,
+                    'q2_marks' => $row['q2'] ?? null,
+                    'q3_marks' => $row['q3'] ?? null,
+                    'q4_marks' => $row['q4'] ?? null,
+                    'q5_marks' => $row['q5'] ?? null,
+                    'q6_marks' => $row['q6'] ?? null,
+                    'order_no' => $unit->unit_no ?? $unitId,
+                ]
+            );
+        }
+
+        return back()->with('success', 'Question Paper Profile saved');
+    }
+
+    public function questionBits($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
+
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
+
+        $qppRows = QuestionPaperProfile::where('syllabus_id', $syllabus->id)
+            ->orderBy('syllabus_unit_id')
+            ->with('syllabusUnit', 'courseOutcome')   // eager load to avoid N+1
+            ->get();
+
+        $bits = QuestionBit::where('syllabus_id', $syllabus->id)
+            ->get()
+            ->groupBy(['syllabus_unit_id', 'question_no', 'bit_label']);
+
+        return view('expert.syllabus.question_bits', compact(
+            'course',
+            'syllabus',
+            'qppRows',
+            'bits',
+            'scheme'
+        ));
+    }
+
+    public function saveQuestionBits(Request $request, $courseId)
+    {
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
+        $data = $request->bits ?? [];
+
+        $errors = [];
+
+        foreach ($data as $unitId => $questions) {
+
+            $qpp = QuestionPaperProfile::where('syllabus_id', $syllabus->id)
+                ->where('syllabus_unit_id', $unitId)
+                ->first();
+
+            if (! $qpp) {
                 continue;
             }
 
-            $task = PracticalTask::create([
-                'syllabus_id'          => $syllabus->id,
-                'lab_learning_outcome' => $taskData['outcome']   ?? null,
-                'exercise'             => $taskData['exercise']  ?? '',
-                'hours'                => $taskData['hours']     ?? 0,
-                'order_no'             => $index + 1,
-            ]);
+            $unitLabel = $qpp->syllabusUnit->unit_no ?? $unitId;
 
-            // Sync units — filter to integers to prevent 'on' slipping through
-            $unitIds = array_filter(
-                array_map('intval', $taskData['units'] ?? []),
-                fn($id) => $id > 0
-            );
+            // actual distribution = sum of q1..q6 marks from QPP
+            $actualDistribution = (int) ($qpp->q1_marks ?? 0)
+                                + (int) ($qpp->q2_marks ?? 0)
+                                + (int) ($qpp->q3_marks ?? 0)
+                                + (int) ($qpp->q4_marks ?? 0)
+                                + (int) ($qpp->q5_marks ?? 0)
+                                + (int) ($qpp->q6_marks ?? 0);
 
-            if (!empty($unitIds)) {
-                $task->units()->sync($unitIds);
+            $unitTotal = 0;
+
+            foreach ($questions as $qNo => $bitsArr) {
+
+                $qTotal = 0;
+                foreach ($bitsArr as $bitLabel => $marks) {
+                    $qTotal += (int) $marks;
+                }
+
+                // each question's bits must sum to that question's marks in QPP
+                $expectedQ = (int) ($qpp->{'q'.$qNo.'_marks'} ?? 0);
+                if ($expectedQ > 0 && $qTotal !== $expectedQ) {
+                    $errors[] = "Unit {$unitLabel} → Q{$qNo}: got {$qTotal}, expected {$expectedQ}";
+                }
+
+                $unitTotal += $qTotal;
+            }
+
+            // unit bits total must equal actual distribution (sum of q1..q6)
+            if ($unitTotal !== $actualDistribution) {
+                $errors[] = "Unit {$unitLabel} sub-total: got {$unitTotal}, expected {$actualDistribution}";
             }
         }
-    });
 
-    return back()->with('success', 'Practical tasks saved');
-}
+        if (! empty($errors)) {
+            return back()
+                ->withInput()
+                ->with('error', implode('<br>', $errors));
+        }
+
+        DB::transaction(function () use ($data, $syllabus) {
+
+            QuestionBit::where('syllabus_id', $syllabus->id)->delete();
+
+            foreach ($data as $unitId => $questions) {
+
+                $qpp = QuestionPaperProfile::where('syllabus_id', $syllabus->id)
+                    ->where('syllabus_unit_id', $unitId)
+                    ->first();
+
+                foreach ($questions as $qNo => $bitsArr) {
+                    foreach ($bitsArr as $bitLabel => $marks) {
+
+                        $marks = (int) $marks;
+                        if ($marks <= 0) {
+                            continue;
+                        }
+
+                        QuestionBit::create([
+                            'syllabus_id' => $syllabus->id,
+                            'syllabus_unit_id' => $unitId,
+                            'course_outcome_id' => $qpp->course_outcome_id,
+                            'question_no' => $qNo,
+                            'bit_label' => $bitLabel,
+                            'marks' => $marks,
+                            'order_no' => 1,
+                        ]);
+                    }
+                }
+            }
+        });
+
+        return back()->with('success', 'Question bits saved successfully');
+    }
 }

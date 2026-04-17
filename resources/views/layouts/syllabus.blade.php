@@ -15,15 +15,19 @@
 
             <div class="p-6 border-b border-slate-700">
                 <h2 class="text-lg font-semibold">
-                    Syllabus
+                    Syllabus Editing Panel
                 </h2>
+                <h3 class="text-md font-semibold">
+                    {{ auth()->user()->name }}
+                </h3>
+
             </div>
 
             <nav class="flex-1 mt-4 space-y-1 overflow-y-auto">
 
                 <a href="{{ route('expert.syllabus.preview', $course->id) }}"
-                    class="block px-6 py-3 hover:bg-slate-800 transition">
-                    Preview
+                    class="block px-6 py-3 hover:bg-slate-800 transition text-center">
+                    PREVIEW
                 </a>
 
                 <a href="{{ route('expert.syllabus.rationale', $course->id) }}"
@@ -56,7 +60,7 @@
                     Laboratory Learning
                 </a>
 
-                <a href="{{ route('expert.syllabus.self', $course->id) }}"
+                <a href="{{ route('expert.syllabus.self-learning', $course->id) }}"
                     class="block px-6 py-3 hover:bg-slate-800 transition">
                     Self Learning
                 </a>
@@ -71,17 +75,17 @@
                     Instruction Strategies
                 </a>
 
-                <a href="{{ route('expert.syllabus.assessment', $course->id) }}"
+                {{-- <a href="{{ route('expert.syllabus.assessment', $course->id) }}"
                     class="block px-6 py-3 hover:bg-slate-800 transition">
                     Assessment Methodology
-                </a>
+                </a> --}}
 
                 <a href="{{ route('expert.syllabus.books', $course->id) }}"
                     class="block px-6 py-3 hover:bg-slate-800 transition">
                     Books
                 </a>
 
-                <a href="{{ route('expert.syllabus.software', $course->id) }}"
+                <a href="{{ route('expert.syllabus.websites', $course->id) }}"
                     class="block px-6 py-3 hover:bg-slate-800 transition">
                     Software / Websites
                 </a>
@@ -96,12 +100,30 @@
                     CO-PO-PSO Mapping
                 </a>
 
-                <a href="{{ route('expert.syllabus.qp', $course->id) }}"
+                <a href="{{ route('expert.syllabus.qpp', $course->id) }}"
                     class="block px-6 py-3 hover:bg-slate-800 transition">
                     Question Paper Profile
                 </a>
 
+                <a href="{{ route('expert.syllabus.qb', $course->id) }}"
+                    class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Question Bits
+                </a>
+
             </nav>
+
+            <div class="p-6 border-t border-slate-700">
+
+            <a href="{{ route('expert.dashboard') }}">
+
+
+                <button class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium transition">
+                    Back to DashBoard
+                </button>
+
+            </a>
+
+        </div>
 
         </aside>
 

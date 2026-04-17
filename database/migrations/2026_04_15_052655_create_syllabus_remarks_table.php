@@ -11,21 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('self_learnings', function (Blueprint $table) {
+        Schema::create('syllabus_remarks', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('section_id')
-                  ->constrained('syllabus_sections')
+            $table->foreignId('syllabus_id')
+                  ->constrained('syllabus')
                   ->cascadeOnDelete();
 
-            $table->text('point_text');
+            $table->text('remark');
 
-            $table->unsignedTinyInteger('order_no');
-
+            $table->foreignId('given_by')
+                  ->constrained('users')
+                  ->cascadeOnDelete();
             $table->timestamps();
-
-            // One self-learning content per section
-            $table->unique('section_id');
         });
     }
 
@@ -34,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('self_learnings');
+        Schema::dropIfExists('syllabus_remarks');
     }
 };

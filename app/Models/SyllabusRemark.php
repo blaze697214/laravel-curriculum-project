@@ -5,18 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Equipment extends Model
+class SyllabusRemark extends Model
 {
-    /** @use HasFactory<\Database\Factories\EquipmentFactory> */
+    /** @use HasFactory<\Database\Factories\SyllabusRemarkFactory> */
     use HasFactory;
-
-    protected $table = 'equipments';
 
     protected $fillable = [
         'syllabus_id',
-        'equipment_name',
-        'order_no',
-        'specification'
+        'remark',
+        'given_by'
     ];
 
     /*
@@ -28,5 +25,10 @@ class Equipment extends Model
     public function syllabus()
     {
         return $this->belongsTo(Syllabus::class);
+    }
+
+    public function givenBy()
+    {
+        return $this->belongsTo(User::class, 'given_by');
     }
 }

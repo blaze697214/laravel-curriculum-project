@@ -245,7 +245,7 @@ Route::middleware(['auth', 'role:expert','active.scheme'])->prefix('/expert')->n
         Route::get('/rationale', [EXPERTSyllabusController::class, 'rationale'])
             ->name('rationale');
 
-            
+
 
 Route::post('/rationale', [EXPERTSyllabusController::class, 'saveRationale'])
     ->name('rationale.save');
@@ -253,7 +253,7 @@ Route::post('/rationale', [EXPERTSyllabusController::class, 'saveRationale'])
         Route::get('/industrial-outcome', [EXPERTSyllabusController::class, 'industrialOutcome'])
             ->name('industrial');
 
-            
+
 
 Route::post('/industrial-outcome', [EXPERTSyllabusController::class, 'saveIndustrialOutcome'])
     ->name('industrial.save');
@@ -266,7 +266,7 @@ Route::post('/course-outcome', [EXPERTSyllabusController::class, 'saveCourseOutc
 
         Route::get('/course-details', [EXPERTSyllabusController::class, 'courseDetails'])
             ->name('details');
-        
+
 Route::post('/course-details', [EXPERTSyllabusController::class, 'saveCourseDetails'])
     ->name('details.save');
 
@@ -282,32 +282,60 @@ Route::post('/specification', [EXPERTSyllabusController::class, 'saveSpecificati
 Route::post('/practicals', [EXPERTSyllabusController::class, 'savePracticals'])
     ->name('practicals.save');
 
-        Route::get('/self-learning', [EXPERTSyllabusController::class, 'selfLearning'])
-            ->name('self');
+            Route::get('/self-learning', [EXPERTSyllabusController::class, 'selfLearning'])
+    ->name('self-learning');
+
+Route::post('/self-learning', [EXPERTSyllabusController::class, 'saveSelfLearning'])
+    ->name('self-learning.save');
 
         Route::get('/tutorial', [EXPERTSyllabusController::class, 'tutorial'])
             ->name('tutorial');
 
+Route::post('/tutorial', [EXPERTSyllabusController::class, 'saveTutorial'])
+    ->name('tutorial.save');
+
         Route::get('/instruction', [EXPERTSyllabusController::class, 'instruction'])
             ->name('instruction');
+
+
+Route::post('/instruction', [EXPERTSyllabusController::class, 'saveInstruction'])
+    ->name('instruction.save');
 
         Route::get('/assessment', [EXPERTSyllabusController::class, 'assessment'])
             ->name('assessment');
 
         Route::get('/books', [EXPERTSyllabusController::class, 'books'])
-            ->name('books');
+            ->name('books');         
 
-        Route::get('/software', [EXPERTSyllabusController::class, 'software'])
-            ->name('software');
+Route::post('/books', [EXPERTSyllabusController::class, 'saveBooks'])
+    ->name('books.save');
 
-        Route::get('/equipment', [EXPERTSyllabusController::class, 'equipment'])
+        Route::get('/websites', [EXPERTSyllabusController::class, 'websites'])
+    ->name('websites');
+
+Route::post('/websites', [EXPERTSyllabusController::class, 'saveWebsites'])
+    ->name('websites.save');
+
+        Route::get('/equipment', [EXPERTSyllabusController::class, 'equipments'])
             ->name('equipment');
+
+Route::post('/equipments', [EXPERTSyllabusController::class, 'saveEquipments'])
+    ->name('equipments.save');
 
         Route::get('/mapping', [EXPERTSyllabusController::class, 'mapping'])
             ->name('mapping');
 
-        Route::get('/question-paper', [EXPERTSyllabusController::class, 'questionPaper'])
-            ->name('qp');
+        Route::get('/question-paper-profile', [EXPERTSyllabusController::class, 'questionPaperProfile'])
+            ->name('qpp');
+
+        Route::post('/question-paper-profile', [EXPERTSyllabusController::class, 'saveQuestionPaperProfile'])
+            ->name('qpp.save');
+
+        Route::get('/question-bits', [EXPERTSyllabusController::class, 'questionBits'])
+    ->name('qb');
+
+Route::post('/question-bits', [EXPERTSyllabusController::class, 'saveQuestionBits'])
+    ->name('qb.save');
 
     });
 

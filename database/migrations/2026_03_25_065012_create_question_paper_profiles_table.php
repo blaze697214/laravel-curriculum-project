@@ -15,18 +15,22 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('syllabus_id')
-                  ->constrained('syllabus')
-                  ->cascadeOnDelete();
+                ->constrained('syllabus')
+                ->cascadeOnDelete();
 
             // Unit + CO mapping (summary row)
-            $table->unsignedTinyInteger('unit_no');
+            $table->foreignId('syllabus_unit_id')
+                ->after('syllabus_id')
+                ->constrained('syllabus_units')
+                ->cascadeOnDelete();
+
             $table->foreignId('course_outcome_id')
-                  ->constrained('course_outcomes')
-                  ->cascadeOnDelete();
+            ->constrained('course_outcomes')
+            ->cascadeOnDelete();
 
             // Marks
             $table->unsignedTinyInteger('marks_per_unit');
-            $table->unsignedTinyInteger('adjusted_marks'); // 1.35x value
+            $table->unsignedTinyInteger('adjusted_marks'); // (multipler)x value
 
             // Question-wise marks (fixed structure)
             $table->unsignedTinyInteger('q1_marks')->nullable();
@@ -36,16 +40,13 @@ return new class extends Migration
             $table->unsignedTinyInteger('q5_marks')->nullable();
             $table->unsignedTinyInteger('q6_marks')->nullable();
 
-            // Final calculated distribution
-            $table->unsignedTinyInteger('actual_distribution');
-
             $table->unsignedTinyInteger('order_no');
 
             $table->timestamps();
 
             // Prevent duplicate row per unit + CO
-            $table->unique(['syllabus_id', 'unit_no']);
-            $table->unique(['syllabus_id', 'course_outcome_id']);
+            $table->unique(['syllabus_id', 'unit_id']);
+            // $table->unique(['syllabus_id', 'course_outcome_id']);
         });
     }
 

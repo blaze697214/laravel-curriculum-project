@@ -22,7 +22,9 @@ return new class extends Migration
                 'objective',
                 'student_activity',
                 'instructional_activity',
-                'industrial_outcome'
+                'industrial_outcome',
+                'self_learning',
+                'tutorial'
             ]);
 
             $table->text('content');

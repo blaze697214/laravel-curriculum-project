@@ -19,6 +19,7 @@ return new class extends Migration
                   ->cascadeOnDelete();
 
             $table->foreignId('department_id')
+                  ->nullable()
                   ->constrained('departments')
                   ->cascadeOnDelete();
 
@@ -31,7 +32,6 @@ return new class extends Migration
             $table->timestamps();
 
             // Prevent duplicate PO per dept + scheme
-            $table->unique(['scheme_id', 'department_id', 'po_code']);
         });
     }
 

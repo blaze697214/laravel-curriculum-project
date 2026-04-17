@@ -20,9 +20,9 @@ return new class extends Migration
 
             $table->string('equipment_name');
 
-            $table->unsignedTinyInteger('experiment_no')->nullable();
-
             $table->unsignedTinyInteger('order_no');
+
+            $table->text('specification')->nullable();
 
             $table->timestamps();
         });

@@ -13,7 +13,8 @@ class Website extends Model
      protected $fillable = [
         'syllabus_id',
         'url',
-        'order_no'
+        'order_no',
+        'description'
     ];
 
     /*

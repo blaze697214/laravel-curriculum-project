@@ -17,7 +17,7 @@ class Syllabus extends Model
         'rationale',
         'created_by',
         'status',
-        'remark'
+        'question_multiplier'
     ];
 
     protected $table = 'syllabus';
@@ -108,4 +108,9 @@ class Syllabus extends Model
     {
         return $this->hasMany(SyllabusListItem::class);
     }
+
+    public function remarks()
+{
+    return $this->hasMany(SyllabusRemark::class);
+}
 }

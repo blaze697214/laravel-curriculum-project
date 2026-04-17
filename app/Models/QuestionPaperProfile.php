@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
+use Database\Factories\QuestionPaperProfileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class QuestionPaperProfile extends Model
 {
-    /** @use HasFactory<\Database\Factories\QuestionPaperProfileFactory> */
+    /** @use HasFactory<QuestionPaperProfileFactory> */
     use HasFactory;
 
     protected $fillable = [
         'syllabus_id',
-        'unit_no',
+        'syllabus_unit_id',
         'course_outcome_id',
         'marks_per_unit',
         'adjusted_marks',
@@ -22,8 +23,7 @@ class QuestionPaperProfile extends Model
         'q4_marks',
         'q5_marks',
         'q6_marks',
-        'actual_distribution',
-        'order_no'
+        'order_no',
     ];
 
     /*
@@ -40,5 +40,10 @@ class QuestionPaperProfile extends Model
     public function courseOutcome()
     {
         return $this->belongsTo(CourseOutcome::class);
+    }
+
+    public function syllabusUnit()
+    {
+        return $this->belongsTo(SyllabusUnit::class);
     }
 }

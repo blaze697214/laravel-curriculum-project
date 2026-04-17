@@ -22,6 +22,8 @@ return new class extends Migration
 
             $table->unsignedTinyInteger('order_no');
 
+            $table->text('description');
+
             $table->timestamps();
 
             // Optional: prevent duplicate URLs per syllabus

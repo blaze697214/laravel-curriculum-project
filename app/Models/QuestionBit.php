@@ -12,7 +12,7 @@ class QuestionBit extends Model
 
     protected $fillable = [
         'syllabus_id',
-        'unit_no',
+        'syllabus_unit_id',
         'course_outcome_id',
         'question_no',
         'bit_label',
@@ -35,4 +35,11 @@ class QuestionBit extends Model
     {
         return $this->belongsTo(CourseOutcome::class);
     }
+
+public function syllabusUnit()
+{
+    return $this->belongsTo(SyllabusUnit::class);
+}
+
+
 }

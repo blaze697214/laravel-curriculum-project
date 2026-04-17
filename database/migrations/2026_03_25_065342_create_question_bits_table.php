@@ -19,7 +19,11 @@ return new class extends Migration
                   ->cascadeOnDelete();
 
             // Unit + CO mapping
-            $table->unsignedTinyInteger('unit_no');
+            $table->foreignId('syllabus_unit_id')
+      ->after('syllabus_id')
+      ->constrained('syllabus_units')
+      ->cascadeOnDelete();
+
             $table->foreignId('course_outcome_id')
                   ->constrained('course_outcomes')
                   ->cascadeOnDelete();
@@ -38,16 +42,16 @@ return new class extends Migration
             $table->timestamps();
 
             // Prevent duplicate bit
-            $table->unique([
-                'syllabus_id',
-                'question_no',
-                'bit_label'
-            ]);
-            $table->unique([
-                'syllabus_id',
-                'unit_no',
-                'course_outcome_id'
-            ]);
+            // $table->unique([
+            //     'syllabus_id',
+            //     'question_no',
+            //     'bit_label'
+            // ]);
+            // $table->unique([
+            //     'syllabus_id',
+            //     'unit_id',
+            //     'course_outcome_id'
+            // ]);
         });
     }
 
