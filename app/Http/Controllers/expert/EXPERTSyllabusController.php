@@ -51,7 +51,7 @@ class EXPERTSyllabusController extends Controller
         // =========================
         // SERVICE (for dynamic sections)
         // =========================
-        $service = new SyllabusProgressService($syllabus);
+        $service = new SyllabusProgressService($syllabus,$course);
         $sections = $service->getAvailableSections();
 
         // =========================

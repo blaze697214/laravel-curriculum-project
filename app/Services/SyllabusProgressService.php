@@ -2,30 +2,29 @@
 
 namespace App\Services;
 
-use App\Models\{
-    Syllabus,
-    SyllabusListItem,
-    CourseOutcome,
-    SyllabusUnit,
-    UnitTopic,
-    UnitSubtopic,
-    SpecificationTableRow,
-    PracticalTask,
-    Book,
-    Website,
-    Equipment,
-    QuestionPaperProfile,
-    QuestionBit,
-    CoPoPsoMapping
-};
+use App\Models\Book;
+use App\Models\CoPoPsoMapping;
+use App\Models\CourseOutcome;
+use App\Models\Equipment;
+use App\Models\PracticalTask;
+use App\Models\QuestionBit;
+use App\Models\QuestionPaperProfile;
+use App\Models\SpecificationTableRow;
+use App\Models\SyllabusListItem;
+use App\Models\SyllabusUnit;
+use App\Models\UnitTopic;
+use App\Models\Website;
 
 class SyllabusProgressService
 {
     protected $syllabus;
 
-    public function __construct($syllabus)
+    protected $course;
+
+    public function __construct($syllabus, $course)
     {
         $this->syllabus = $syllabus;
+        $this->course = $course;
     }
 
     // =============================
@@ -36,16 +35,19 @@ class SyllabusProgressService
     {
         $checks = $this->getAllChecks();
 
-        $total = count($checks);
-        $completed = collect($checks)->filter()->count();
+        $filtered = collect($checks)->filter(fn ($v) => ! is_null($v));
+
+        $total = $filtered->count();
+        $completed = $filtered->filter()->count();
 
         return round(($completed / $total) * 100);
     }
 
     public function isComplete()
     {
-        return collect($this->getAllChecks())->every(fn($v) => $v === true);
-    }
+return collect($this->getAllChecks())
+    ->filter(fn($v) => !is_null($v))
+    ->every(fn($v) => $v === true);    }
 
     public function getAllChecks()
     {
@@ -57,7 +59,9 @@ class SyllabusProgressService
             'course_details' => $this->checkCourseDetails(),
             'specification_table' => $this->checkSpecification(),
             'practicals' => $this->checkPracticals(),
-            'self_learning' => $this->checkListType('self_learning'),
+            'self_learning' => $this->course->sla_marks != 0
+                ? $this->checkListType('self_learning')
+                : null,
             'tutorial' => $this->checkListType('tutorial'),
             'instruction' => $this->checkListType('instruction_strategy'),
             'books' => $this->checkBooks(),
@@ -75,7 +79,7 @@ class SyllabusProgressService
 
     protected function checkRationale()
     {
-        return !empty(trim($this->syllabus->rationale ?? ''));
+        return ! empty(trim($this->syllabus->rationale ?? ''));
     }
 
     protected function checkIndustrialOutcomes()
@@ -94,7 +98,9 @@ class SyllabusProgressService
     {
         $units = SyllabusUnit::where('syllabus_id', $this->syllabus->id)->get();
 
-        if ($units->isEmpty()) return false;
+        if ($units->isEmpty()) {
+            return false;
+        }
 
         foreach ($units as $unit) {
 
@@ -102,7 +108,9 @@ class SyllabusProgressService
                 ->where('type', 'topic')
                 ->exists();
 
-            if (!$topics) return false;
+            if (! $topics) {
+                return false;
+            }
         }
 
         return true;
@@ -167,12 +175,14 @@ class SyllabusProgressService
         $index = 1;
 
         foreach ($checks as $key => $status) {
-            if ($status) {
-                $sections[$key] = $index++;
-            }
-        }
+
+    if (is_null($status)) continue;
+
+    if ($status) {
+        $sections[$key] = $index++;
+    }
+}
 
         return $sections;
     }
-
 }
