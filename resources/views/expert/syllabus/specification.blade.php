@@ -40,17 +40,20 @@
                                 <td class="border px-3 py-2 text-left">{{ $unit->title }}</td>
 
                                 <td class="border px-3 py-2">
-                                    <input type="number" name="rows[{{ $unit->id }}][r]" value="{{ $r }}"
+                                    <input type="number" min="0" name="rows[{{ $unit->id }}][r]"
+                                        value="{{ $r }}"
                                         class="unit-marks w-16 border border-gray-300 rounded px-2 py-1 text-center focus:ring-2 focus:ring-blue-500">
                                 </td>
 
                                 <td class="border px-3 py-2">
-                                    <input type="number" name="rows[{{ $unit->id }}][u]" value="{{ $u }}"
+                                    <input type="number" min="0" name="rows[{{ $unit->id }}][u]"
+                                        value="{{ $u }}"
                                         class="unit-marks w-16 border border-gray-300 rounded px-2 py-1 text-center focus:ring-2 focus:ring-blue-500">
                                 </td>
 
                                 <td class="border px-3 py-2">
-                                    <input type="number" name="rows[{{ $unit->id }}][a]" value="{{ $a }}"
+                                    <input type="number" min="0" name="rows[{{ $unit->id }}][a]"
+                                        value="{{ $a }}"
                                         class="unit-marks w-16 border border-gray-300 rounded px-2 py-1 text-center focus:ring-2 focus:ring-blue-500">
                                 </td>
 
@@ -80,9 +83,11 @@
 
     <script>
         function recalculateAll() {
-            let grandR = 0, grandU = 0, grandA = 0;
+            let grandR = 0,
+                grandU = 0,
+                grandA = 0;
 
-            document.querySelectorAll('[data-unit-row]').forEach(function (row) {
+            document.querySelectorAll('[data-unit-row]').forEach(function(row) {
                 const inputs = row.querySelectorAll('.unit-marks');
                 const r = parseInt(inputs[0].value) || 0;
                 const u = parseInt(inputs[1].value) || 0;
@@ -106,7 +111,7 @@
         recalculateAll();
 
         // Re-run on every input change
-        document.querySelectorAll('.unit-marks').forEach(function (input) {
+        document.querySelectorAll('.unit-marks').forEach(function(input) {
             input.addEventListener('input', recalculateAll);
         });
     </script>

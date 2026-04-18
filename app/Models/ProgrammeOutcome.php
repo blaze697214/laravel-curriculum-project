@@ -14,6 +14,7 @@ class ProgrammeOutcome extends Model
         'scheme_id',
         'department_id',
         'po_code',
+        'type',
         'description',
         'order_no'
     ];

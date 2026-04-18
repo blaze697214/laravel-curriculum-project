@@ -41,32 +41,32 @@
                     Dashboard
                 </a>
 
-                @if(auth()->user()->department->type == 'service')
-
-                <a href="/hod/courses/view" class="block px-6 py-3 hover:bg-slate-800 transition">
-                    View Courses
-                </a>
-                
+                @if (auth()->user()->department->type == 'service')
+                    <a href="/hod/courses/view" class="block px-6 py-3 hover:bg-slate-800 transition">
+                        View Courses
+                    </a>
                 @else
-                <h4 class="px-6 py-2 text-xs uppercase text-slate-400 mt-4">
-                    Scheme Details
-                </h4>
+                    <h4 class="px-6 py-2 text-xs uppercase text-slate-400 mt-4">
+                        Scheme Details
+                    </h4>
+                    <a href="/hod/pso" class="block px-6 py-3 hover:bg-slate-800 transition">
+                        Programme Specific Outcome
+                    </a>
 
-                <a href="/hod/courses/create" class="block px-6 py-3 hover:bg-slate-800 transition">
-                    Courses
-                </a>
-                <a href="/hod/courses/view" class="block px-6 py-3 hover:bg-slate-800 transition">
-                    View Courses
-                </a>
+                    <a href="/hod/courses/create" class="block px-6 py-3 hover:bg-slate-800 transition">
+                        Courses
+                    </a>
+                    <a href="/hod/courses/view" class="block px-6 py-3 hover:bg-slate-800 transition">
+                        View Courses
+                    </a>
 
-                <a href="/hod/elective-groups" class="block px-6 py-3 hover:bg-slate-800 transition">
-                    Elective Groups
-                </a>
+                    <a href="/hod/elective-groups" class="block px-6 py-3 hover:bg-slate-800 transition">
+                        Elective Groups
+                    </a>
 
-                <a href="/hod/class-award" class="block px-6 py-3 hover:bg-slate-800 transition">
-                    Class Award Courses
-                </a>
-
+                    <a href="/hod/class-award" class="block px-6 py-3 hover:bg-slate-800 transition">
+                        Class Award Courses
+                    </a>
                 @endif
 
                 <a href="/hod/assign-courses" class="block px-6 py-3 hover:bg-slate-800 transition">

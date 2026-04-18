@@ -1,9 +1,11 @@
 @extends('layouts.syllabus')
 
 @section('content')
+
+        <h3 class="text-lg text-gray-800 font-semibold mb-4">Suggested Question Paper Profile</h3>
+
     <div class="bg-white p-6 rounded-xl shadow">
 
-        <h2 class="text-lg font-semibold mb-4">Suggested Question Paper Profile</h2>
 
         <form method="POST" action="{{ route('expert.syllabus.qpp.save', $course->id) }}">
             @csrf
@@ -11,7 +13,7 @@
 
             <div class="mb-4">
                 <label class="block text-sm font-medium mb-1">Multiplier</label>
-                <input type="number" step="0.01" id="multiplier" name="multiplier"
+                <input type="number" min="0" step="0.01" id="multiplier" name="multiplier"
                     value="{{ $syllabus->question_multiplier }}"
                     class="border border-gray-300 rounded px-3 py-2 w-40 text-sm">
             </div>
@@ -91,7 +93,7 @@
                             </td>
 
                             <td class="border px-2 py-2">
-                                <input type="number" name="rows[{{ $unit->id }}][adjusted_marks]"
+                                <input type="number" min="0" name="rows[{{ $unit->id }}][adjusted_marks]"
                                     class="adjusted border border-gray-300 rounded px-2 py-1 w-20 text-center"
                                     data-mpu="{{ $mpu }}"
                                     value="{{ old('rows.' . $unit->id . '.adjusted_marks', $adj) }}">
@@ -100,7 +102,8 @@
                             @for ($i = 1; $i <= 6; $i++)
                                 @php $qVal = old('rows.' . $unit->id . '.q' . $i, ${"q".$i}); @endphp
                                 <td class="border px-2 py-2">
-                                    <input type="number" name="rows[{{ $unit->id }}][q{{ $i }}]"
+                                    <input type="number" min="0"
+                                        name="rows[{{ $unit->id }}][q{{ $i }}]"
                                         class="q border border-gray-300 rounded px-2 py-1 w-16 text-center"
                                         value="{{ $qVal }}">
                                 </td>

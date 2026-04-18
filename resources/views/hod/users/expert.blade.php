@@ -144,7 +144,7 @@
 
                 <tbody class="divide-y">
 
-                    @foreach ($users as $user)
+                    @forelse ($users as $user)
                         <tr class="hover:bg-gray-50 border-gray-200">
                             <form method="POST" action="{{ route('hod.users.expert.update', $user->id) }}">
                                 @csrf
@@ -190,7 +190,14 @@
                             </form>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr class="hover:bg-gray-50 border-gray-200">
+                             <td colspan="5" class="px-4 py-3 font-medium text-gray-500 text-center">
+                                No User Created
+                             </td>
+                        </tr>
+
+                    @endforelse
 
                 </tbody>
 

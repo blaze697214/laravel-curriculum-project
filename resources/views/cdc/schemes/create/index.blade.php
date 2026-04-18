@@ -47,13 +47,13 @@
 
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Total Credits</label>
-                <input type="number" name="total_credits" value="{{ old('total_credits') }}"
+                <input type="number" min="0" name="total_credits" value="{{ old('total_credits') }}"
                     class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Total Marks</label>
-                <input type="number" name="total_marks" value="{{ old('total_marks') }}"
+                <input type="number" min="0" name="total_marks" value="{{ old('total_marks') }}"
                     class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 

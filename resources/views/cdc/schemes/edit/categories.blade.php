@@ -35,7 +35,7 @@
                     </div>
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">Order no.</label>
-                        <input type="number" name="order_no"
+                        <input type="number" min="0" name="order_no"
                             class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
@@ -91,7 +91,8 @@
                                         @csrf
                                         @method('PATCH')
 
-                                        <input type="number" name="order_no" value="{{ $category->order_no }}"
+                                        <input type="number" min="0" name="order_no"
+                                            value="{{ $category->order_no }}"
                                             class="border border-gray-300 rounded px-2 py-1 w-full">
                                 </td>
 
@@ -109,7 +110,8 @@
                                 </td>
 
                                 <td class="px-4 py-3">
-                                <input type="checkbox" name="is_elective" @if($category->is_elective) checked @endif>
+                                    <input type="checkbox" name="is_elective"
+                                        @if ($category->is_elective) checked @endif>
                                 </td>
 
                                 <td class="px-4 py-3 flex gap-2">

@@ -14,10 +14,10 @@
         <aside class="w-64 bg-slate-900 text-slate-200 flex flex-col">
 
             <div class="p-6 border-b border-slate-700">
-                <h2 class="text-lg font-semibold">
+                <h2 class="text-lg font-semibold mb-3">
                     Syllabus Editing Panel
                 </h2>
-                <h3 class="text-md font-semibold">
+                <h3 class="text-sm font-md">
                     {{ auth()->user()->name }}
                 </h3>
 
@@ -25,9 +25,9 @@
 
             <nav class="flex-1 mt-4 space-y-1 overflow-y-auto">
 
-                <a href="{{ route('expert.syllabus.preview', $course->id) }}"
+                <a href="{{ route('expert.dashboard') }}"
                     class="block px-6 py-3 hover:bg-slate-800 transition text-center">
-                    PREVIEW
+                    Back to Dashboard
                 </a>
 
                 <a href="{{ route('expert.syllabus.rationale', $course->id) }}"
@@ -114,11 +114,11 @@
 
             <div class="p-6 border-t border-slate-700">
 
-            <a href="{{ route('expert.dashboard') }}">
+            <a href="{{ route('expert.syllabus.preview',$course->id ) }}">
 
 
                 <button class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium transition">
-                    Back to DashBoard
+                    PREVIEW
                 </button>
 
             </a>
@@ -159,7 +159,7 @@
                     </h2>
 
                     <p class="text-sm text-gray-500 mt-1">
-                        {{ $course->abbreviation }}
+                        {{ $course->abbreviation }} - {{ $course->course_code ?? '' }}
                     </p>
 
                 </div>

@@ -100,34 +100,34 @@
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">IKS</label>
 
-                        <input type="number" name="iks_hours" value="{{ $course->iks_hours }}"
+                        <input type="number" min="0" name="iks_hours" value="{{ $course->iks_hours }}"
                             {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">CL</label>
-                        <input type="number" name="cl_hours" value="{{ $course->cl_hours }}"
+                        <input type="number" min="0" name="cl_hours" value="{{ $course->cl_hours }}"
                             {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">TL</label>
-                        <input type="number" name="tl_hours" value="{{ $course->tl_hours }}"
+                        <input type="number" min="0" name="tl_hours" value="{{ $course->tl_hours }}"
                             {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">LL</label>
-                        <input type="number" name="ll_hours" value="{{ $course->ll_hours }}"
+                        <input type="number" min="0" name="ll_hours" value="{{ $course->ll_hours }}"
                             {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">SLA</label>
-                        <input type="number" name="sla_hours" value="{{ $course->sla_hours }}"
+                        <input type="number" min="0" name="sla_hours" value="{{ $course->sla_hours }}"
                             {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
@@ -144,14 +144,14 @@
                 <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">Credits</label>
-                        <input type="number" name="credits" value="{{ $course->credits }}"
+                        <input type="number" min="0" name="credits" value="{{ $course->credits }}"
                             {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">Paper Duration</label>
-                        <input type="number" name="paper_duration" value="{{ $course->paper_duration }}"
+                        <input type="number" min="0" name="paper_duration" value="{{ $course->paper_duration }}"
                             {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
@@ -160,38 +160,39 @@
                 <div class="grid grid-cols-3 gap-4 mt-4">
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">FA TH</label>
-                        <input type="number" name="fa_th" id="fa_th" value="{{ $course->fa_th }}"
+                        <input type="number" min="0" name="fa_th" id="fa_th" value="{{ $course->fa_th }}"
                             {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">SA TH</label>
-                        <input type="number" name="sa_th" id="sa_th" value="{{ $course->sa_th }}"
+                        <input type="number" min="0" name="sa_th" id="sa_th" value="{{ $course->sa_th }}"
                             {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">FA PR</label>
-                        <input type="number" name="fa_pr" id="fa_pr" value="{{ $course->fa_pr }}"
-                            {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
+                        <input type="number" min="0" name="fa_pr" id="fa_pr"
+                            value="{{ $course->fa_pr }}" {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">SA PR</label>
-                        <input type="number" name="sa_pr" id="sa_pr" value="{{ $course->sa_pr }}"
-                            {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
+                        <input type="number" min="0" name="sa_pr" id="sa_pr"
+                            value="{{ $course->sa_pr }}" {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">SLA Marks</label>
-                        <input type="number" name="sla_marks" id="sla_marks" value="{{ $course->sla_marks }}"
-                            {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
+                        <input type="number" min="0" name="sla_marks" id="sla_marks"
+                            value="{{ $course->sla_marks }}" {{ !$isOwner && $course->is_common ? 'readonly' : '' }}
                             class="w-full border border-gray-300 rounded px-3 py-2 {{ !$isOwner && $course->is_common ? 'bg-gray-100 cursor-not-allowed' : '' }}">
                     </div>
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">Total Marks</label>
-                        <input type="number" name="total_marks" id="total_marks" value="{{ $course->total_marks }}"
-                            readonly class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 cursor-not-allowed">
+                        <input type="number" min="0" name="total_marks" id="total_marks"
+                            value="{{ $course->total_marks }}" readonly
+                            class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 cursor-not-allowed">
                     </div>
                 </div>
 

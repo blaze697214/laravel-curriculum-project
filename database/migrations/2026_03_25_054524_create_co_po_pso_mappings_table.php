@@ -32,11 +32,6 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // Prevent duplicate mapping
-            $table->unique([
-                'course_outcome_id',
-                'programme_outcome_id',
-            ]);
         });
     }
 

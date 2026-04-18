@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\cdc;
 
 use App\Http\Controllers\Controller;
-    use App\Models\ClassAwardRule;
+use App\Models\ClassAwardRule;
 use App\Models\CourseCategory;
+use App\Models\ProgrammeOutcome;
 use App\Models\Scheme;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,8 +46,6 @@ class CDCSchemeController extends Controller
         return redirect()->route('cdc.schemes.categories.create', $scheme->id)
             ->with('success', 'Scheme created. Now add course categories.');
     }
-
-
 
     public function editIndex()
     {
@@ -121,7 +120,7 @@ class CDCSchemeController extends Controller
             'name' => $request->name,
             'abbreviation' => $request->abbreviation,
             'order_no' => $order,
-            'is_elective' => $request->is_elective ? 1 : 0
+            'is_elective' => $request->is_elective ? 1 : 0,
         ]);
 
         return redirect()
@@ -136,14 +135,14 @@ class CDCSchemeController extends Controller
         $request->validate([
             'name' => 'required',
             'abbreviation' => 'required',
-            'order_no' => 'required'
+            'order_no' => 'required',
         ]);
 
         $category->update([
             'name' => $request->name,
             'abbreviation' => $request->abbreviation,
             'order_no' => $request->order_no,
-            'is_elective' => $request->is_elective ? 1 : 0
+            'is_elective' => $request->is_elective ? 1 : 0,
         ]);
 
         return back()->with('success', 'Category updated');
@@ -168,68 +167,175 @@ class CDCSchemeController extends Controller
     }
 
     public function createAwardRules(Scheme $scheme)
-{
-    $rule = ClassAwardRule::where('scheme_id', $scheme->id)->first();
+    {
+        $rule = ClassAwardRule::where('scheme_id', $scheme->id)->first();
 
-    return view('cdc.schemes.create.award_rules', compact('scheme', 'rule'));
-}
-
-public function storeAwardRules(Request $request, Scheme $scheme)
-{
-    if ($scheme->is_locked) {
-        return back()->withErrors('Locked scheme cannot be modified');
+        return view('cdc.schemes.create.award_rules', compact('scheme', 'rule'));
     }
 
-    if($request->input('total_marks') > $scheme->total_marks){
-        return back()->withErrors('Total class award marks must be less than '.$scheme->total_marks)->withInput();
+    public function storeAwardRules(Request $request, Scheme $scheme)
+    {
+        if ($scheme->is_locked) {
+            return back()->withErrors('Locked scheme cannot be modified');
+        }
+
+        if ($request->input('total_marks') > $scheme->total_marks) {
+            return back()->withErrors('Total class award marks must be less than '.$scheme->total_marks)->withInput();
+        }
+
+        $validated = $request->validate([
+            'total_subjects' => 'required|integer|min:1',
+            'total_marks' => 'required|integer|min:1',
+        ]);
+
+        ClassAwardRule::updateOrCreate(
+            ['scheme_id' => $scheme->id],
+            [
+                'total_subjects_required' => $validated['total_subjects'],
+                'total_marks_required' => $validated['total_marks'],
+            ]
+        );
+
+        return redirect()->route('cdc.schemes.po.create',$scheme->id);
     }
-
-    $validated = $request->validate([
-        'total_subjects' => 'required|integer|min:1',
-        'total_marks' => 'required|integer|min:1',
-    ]);
-
-    ClassAwardRule::updateOrCreate(
-        ['scheme_id' => $scheme->id],
-        [
-            'total_subjects_required' => $validated['total_subjects'],
-            'total_marks_required' => $validated['total_marks'],
-        ]
-    );
-
-    return redirect()->route('cdc.schemes.create')
-        ->with('success', 'Scheme created successfully...');
-}
 
     public function editAwardRules(Scheme $scheme)
-{
-    $rule = ClassAwardRule::where('scheme_id', $scheme->id)->first();
+    {
+        $rule = ClassAwardRule::where('scheme_id', $scheme->id)->first();
 
-    return view('cdc.schemes.edit.award_rules', compact('scheme', 'rule'));
-}
-
-    public function updateAwardRules(Request $request, Scheme $scheme)
-{
-    if ($scheme->is_locked) {
-        return back()->withErrors('Locked scheme cannot be edited');
+        return view('cdc.schemes.edit.award_rules', compact('scheme', 'rule'));
     }
 
-    $validated = $request->validate([
-        'total_subjects' => 'required|integer|min:1',
-        'total_marks' => 'required|integer|min:1',
-    ]);
+    public function updateAwardRules(Request $request, Scheme $scheme)
+    {
+        if ($scheme->is_locked) {
+            return back()->withErrors('Locked scheme cannot be edited');
+        }
 
-    ClassAwardRule::updateOrCreate(
-        ['scheme_id' => $scheme->id],
-        [
-            'total_subjects_required' => $validated['total_subjects'],
-            'total_marks_required' => $validated['total_marks'],
-        ]
-    );
+        $validated = $request->validate([
+            'total_subjects' => 'required|integer|min:1',
+            'total_marks' => 'required|integer|min:1',
+        ]);
 
+        ClassAwardRule::updateOrCreate(
+            ['scheme_id' => $scheme->id],
+            [
+                'total_subjects_required' => $validated['total_subjects'],
+                'total_marks_required' => $validated['total_marks'],
+            ]
+        );
+
+        return redirect()->back()
+            ->with('success', 'Class award rules updated successfully');
+    }
+
+    public function nextAfterClassAward($schemeId)
+    {
+        return redirect()->route('cdc.schemes.po.edit',$schemeId);
+    }
+
+    public function createPO($schemeId)
+    {
+        $scheme = Scheme::findOrFail($schemeId);
+
+        $pos = ProgrammeOutcome::where('scheme_id', $schemeId)
+            ->where('type','po')
+            ->orderBy('order_no')
+            ->get();
+
+        return view('cdc.schemes.po', [
+            'scheme' => $scheme,
+            'pos' => $pos,
+            'mode' => 'create',
+        ]);
+    }
+
+    public function editPO($schemeId)
+    {
+        $scheme = Scheme::findOrFail($schemeId);
+
+        $pos = ProgrammeOutcome::where('scheme_id', $schemeId)
+            ->where('type','po')
+            ->orderBy('order_no')
+            ->get();
+
+        return view('cdc.schemes.po', [
+            'scheme' => $scheme,
+            'pos' => $pos,
+            'mode' => 'edit',
+        ]);
+    }
+
+    public function storePO(Request $request, $schemeId)
+    {
+        $request->validate([
+            'pos' => 'required|array',
+            'pos.*.po_code' => 'required|string',
+            'pos.*.description' => 'required|string',
+        ]);
+
+        ProgrammeOutcome::where('scheme_id', $schemeId)->delete();
+
+        foreach ($request->pos as $index => $po) {
+
+            if (! trim($po['po_code'])) {
+                continue;
+            }
+
+            ProgrammeOutcome::create([
+                'scheme_id' => $schemeId,
+                'department_id' => null, // PO = global
+                'po_code' => $po['po_code'],
+                'type' => 'po',
+                'description' => $po['description'],
+                'order_no' => $index + 1,
+            ]);
+        }
+
+        //  redirect to FIRST PAGE of create flow
+        return redirect()
+            ->back()
+            ->with('success', 'Programme Outcomes created successfully');
+    }
+
+    public function updatePO(Request $request, $schemeId)
+    {
+
+        ProgrammeOutcome::where('scheme_id', $schemeId)->delete();
+
+        foreach ($request->pos ?? [] as $index => $po) {
+
+            if (! trim($po['po_code'])) {
+                continue;
+            }
+
+            ProgrammeOutcome::create([
+                'scheme_id' => $schemeId,
+                'department_id' => null,
+                'po_code' => $po['po_code'],
+                'type' => 'po',
+                'description' => $po['description'],
+                'order_no' => $index + 1,
+            ]);
+        }
+
+        // redirect to EDIT FLOW page 1
+        return redirect()
+            ->back()
+            ->with('success', 'Programme Outcomes updated successfully');
+    }
+
+    public function nextAfterCreate()
+    {
+        return redirect()->route('cdc.schemes.create')
+            ->with('success','Scheme Created Successfully....');
+    }
+
+    public function nextAfterEdit()
+    {
     return redirect()->route('cdc.schemes.edit.index')
-        ->with('success', 'Class award rules updated successfully');
-}
+            ->with('success','Scheme Updated Successfully....');
+    }
 
     public function manage()
     {
@@ -299,8 +405,4 @@ public function storeAwardRules(Request $request, Scheme $scheme)
 
         return back()->with('success', 'Scheme lock status updated');
     }
-
-
-
-
 }

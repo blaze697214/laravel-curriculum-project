@@ -63,14 +63,15 @@
 
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">Minimum Selection</label>
-                    <input type="number" name="min_select_count" value="{{ old('min_select_count') }}" required
-                        class="w-full border border-gray-300 rounded px-3 py-2">
+                    <input type="number" min="0" name="min_select_count" value="{{ old('min_select_count') }}"
+                        required class="w-full border border-gray-300 rounded px-3 py-2">
                 </div>
 
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">Maximum Selection</label>
-                    <input type="number" name="max_select_count" id="maxSelect" value="{{ old('max_select_count') }}"
-                        required class="w-full border border-gray-300 rounded px-3 py-2">
+                    <input type="number" min="0" name="max_select_count" id="maxSelect"
+                        value="{{ old('max_select_count') }}" required
+                        class="w-full border border-gray-300 rounded px-3 py-2">
                 </div>
 
             </div>

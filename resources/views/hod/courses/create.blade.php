@@ -39,7 +39,8 @@
                 <div class="mt-4">
                     <label class="inline-flex items-center gap-2 text-gray-700">
                         <input type="checkbox" name="is_common" id="is_common" {{ old('is_common') ? 'checked' : '' }}>
-                        Common Course <span class="px-2 py-1 text-xs text-gray-700 bg-gray-200 rounded-md">Is the course used by other departments too?</span>
+                        Common Course <span class="px-2 py-1 text-xs text-gray-700 bg-gray-200 rounded-md">Is the course
+                            used by other departments too?</span>
                     </label>
                 </div>
                 {{-- COMMON SEARCH RESULTS --}}
@@ -75,7 +76,8 @@
 
 
                 {{-- ACTUAL SUBMIT VALUE --}}
-                <input type="hidden" name="owner_department_id" id="owner_department_id" value="{{ auth()->user()->department->id }}">
+                <input type="hidden" name="owner_department_id" id="owner_department_id"
+                    value="{{ auth()->user()->department->id }}">
 
                 {{-- CATEGORY --}}
                 <div class="mt-4">
@@ -134,32 +136,32 @@
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">IKS</label>
-                        <input type="number" name="iks_hours" id="iks_hours" value="{{ old('iks_hours') }}"
+                        <input type="number" min="0" name="iks_hours" id="iks_hours" value="{{ old('iks_hours') }}"
                             class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">CL</label>
-                        <input type="number" name="cl_hours" id="cl_hours" value="{{ old('cl_hours') }}"
+                        <input type="number" min="0" name="cl_hours" id="cl_hours" value="{{ old('cl_hours') }}"
                             class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">TL</label>
-                        <input type="number" name="tl_hours" id="tl_hours" value="{{ old('tl_hours') }}"
+                        <input type="number" min="0" name="tl_hours" id="tl_hours" value="{{ old('tl_hours') }}"
                             class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">LL</label>
-                        <input type="number" name="ll_hours" id="ll_hours" value="{{ old('ll_hours') }}"
+                        <input type="number" min="0" name="ll_hours" id="ll_hours" value="{{ old('ll_hours') }}"
                             class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">SLA</label>
-                        <input type="number" name="sla_hours" id="sla_hours" value="{{ old('sla_hours') }}"
-                            class="w-full border border-gray-300 rounded px-3 py-2">
+                        <input type="number" min="0" name="sla_hours" id="sla_hours"
+                            value="{{ old('sla_hours') }}" class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
                 </div>
@@ -176,13 +178,13 @@
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">Credits</label>
-                        <input type="number" name="credits" id="credits" value="{{ old('credits') }}"
-                            class="w-full border border-gray-300 rounded px-3 py-2">
+                        <input type="number" min="0" name="credits" id="credits"
+                            value="{{ old('credits') }}" class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">Paper Duration</label>
-                        <input type="number" name="paper_duration" id="paper_duration"
+                        <input type="number" min="0" name="paper_duration" id="paper_duration"
                             value="{{ old('paper_duration') }}" class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
@@ -192,37 +194,37 @@
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">FA TH</label>
-                        <input type="number" name="fa_th" id="fa_th" value="{{ old('fa_th') }}"
+                        <input type="number" min="0" name="fa_th" id="fa_th" value="{{ old('fa_th') }}"
                             class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">SA TH</label>
-                        <input type="number" name="sa_th" id="sa_th" value="{{ old('sa_th') }}"
+                        <input type="number" min="0" name="sa_th" id="sa_th" value="{{ old('sa_th') }}"
                             class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">FA PR</label>
-                        <input type="number" name="fa_pr" id="fa_pr" value="{{ old('fa_pr') }}"
+                        <input type="number" min="0" name="fa_pr" id="fa_pr" value="{{ old('fa_pr') }}"
                             class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">SA PR</label>
-                        <input type="number" name="sa_pr" id="sa_pr" value="{{ old('sa_pr') }}"
+                        <input type="number" min="0" name="sa_pr" id="sa_pr" value="{{ old('sa_pr') }}"
                             class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">SLA Marks</label>
-                        <input type="number" name="sla_marks" id="sla_marks" value="{{ old('sla_marks') }}"
-                            class="w-full border border-gray-300 rounded px-3 py-2">
+                        <input type="number" min="0" name="sla_marks" id="sla_marks"
+                            value="{{ old('sla_marks') }}" class="w-full border border-gray-300 rounded px-3 py-2">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">Total Marks</label>
-                        <input type="number" name="total_marks" id="total_marks" readonly
+                        <input type="number" min="0" name="total_marks" id="total_marks" readonly
                             class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 cursor-not-allowed">
                     </div>
 
@@ -436,7 +438,7 @@
 
         document.getElementById('category_id').addEventListener('change', toggleElective);
         toggleElective(); // run on load in case of old() repopulation
-        
+
         calculateTotal();
     </script>
 @endsection

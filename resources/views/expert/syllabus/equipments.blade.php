@@ -1,9 +1,10 @@
 @extends('layouts.syllabus')
 
 @section('content')
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Major Equipments / Instruments</h3>
+
     <div class="bg-white p-6 rounded-xl shadow">
 
-        <h2 class="text-lg font-semibold mb-4">Major Equipments / Instruments</h2>
 
         <form method="POST" action="{{ route('expert.syllabus.equipments.save', $course->id) }}">
             @csrf

@@ -39,6 +39,7 @@ class HODUserController extends Controller
         $departments = Department::all();
 
         $users = User::with(['roles', 'department'])
+            ->where('department_id',Auth::user()->department->id)
             ->whereHas('roles', function ($q) {
                 $q->whereIn('name', ['expert']);
             })

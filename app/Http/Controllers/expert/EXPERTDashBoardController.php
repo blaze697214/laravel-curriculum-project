@@ -8,6 +8,7 @@ use App\Models\CourseAssignment;
 use App\Models\CourseMaster;
 use App\Models\CourseOffering;
 use App\Models\Syllabus; // or whatever your syllabus table is
+use App\Services\SyllabusProgressService;
 use Illuminate\Support\Facades\Auth;
 
 class EXPERTDashBoardController extends Controller
@@ -34,21 +35,18 @@ public function index()
 
         // get syllabus record (adjust if different table)
         $syllabus = Syllabus::where('course_master_id', $course->id)->first();
-
+        $service = new SyllabusProgressService($syllabus);
         $status = 'Not Started';
-        $progress = 0;
+        $progress = $service->getProgress();
 
         if ($syllabus) {
 
             if ($syllabus->is_submitted) {
                 $status = 'Submitted';
-                $progress = 100;
             } elseif ($syllabus->is_completed) {
                 $status = 'Completed';
-                $progress = 100;
             } else {
                 $status = 'Draft';
-                $progress = $syllabus->progress ?? 30; // placeholder
             }
         }
 

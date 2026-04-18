@@ -4,11 +4,13 @@ namespace App\Http\Controllers\expert;
 
 use App\Http\Controllers\Controller;
 use App\Models\Book;
+use App\Models\CoPoPsoMapping;
 use App\Models\CourseMaster;
 use App\Models\CourseOffering;
 use App\Models\CourseOutcome;
 use App\Models\Equipment;
 use App\Models\PracticalTask;
+use App\Models\ProgrammeOutcome;
 use App\Models\QuestionBit;
 use App\Models\QuestionPaperProfile;
 use App\Models\Scheme;
@@ -19,6 +21,7 @@ use App\Models\SyllabusUnit;
 use App\Models\UnitSubtopic;
 use App\Models\UnitTopic;
 use App\Models\Website;
+use App\Services\SyllabusProgressService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,45 +32,114 @@ class EXPERTSyllabusController extends Controller
     {
         $course = CourseMaster::findOrFail($courseId);
 
-        // syllabus
         $syllabus = Syllabus::firstOrCreate(
             ['course_master_id' => $courseId],
             ['rationale' => '', 'status' => 'draft', 'created_by' => Auth::id()]
         );
 
-        // programmes
+        // =========================
+        // PROGRAMMES
+        // =========================
         $offerings = CourseOffering::with('department')
             ->where('course_master_id', $course->id)
             ->get();
 
-        $programmes = $offerings->pluck('department.abbreviation')->unique()->implode(' / ');
+        $programmes = $offerings->pluck('department.abbreviation')
+            ->unique()
+            ->implode(' / ');
 
         // =========================
-        // RATIONALE
+        // SERVICE (for dynamic sections)
         // =========================
-        $rationale = $syllabus->rationale ?? '';
+        $service = new SyllabusProgressService($syllabus);
+        $sections = $service->getAvailableSections();
 
         // =========================
-        // INDUSTRIAL OUTCOME
+        // FETCH ALL DATA
         // =========================
-        $industrialOutcomes = SyllabusListItem::where('syllabus_id', $syllabus->id ?? 0)
+
+        $rationale = $syllabus->rationale;
+
+        $industrialOutcomes = SyllabusListItem::where('syllabus_id', $syllabus->id)
             ->where('type', 'industrial_outcome')
             ->orderBy('order_no')
             ->get();
 
-        // =========================
-        // COURSE OUTCOMES
-        // =========================
-        $courseOutcomes = CourseOutcome::where('syllabus_id', $syllabus->id ?? 0)
+        $courseOutcomes = CourseOutcome::where('syllabus_id', $syllabus->id)
             ->orderBy('order_no')
             ->get();
+
+        $units = SyllabusUnit::with(['topics.subtopics'])
+            ->where('syllabus_id', $syllabus->id)
+            ->orderBy('unit_no')
+            ->get();
+
+        $specRows = SpecificationTableRow::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        $practicals = PracticalTask::with('units')
+            ->where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        $selfLearning = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'self_learning')
+            ->get();
+
+        $tutorial = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'tutorial')
+            ->get();
+
+        $instruction = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'instruction_strategy')
+            ->get();
+
+        $books = Book::where('syllabus_id', $syllabus->id)->get();
+        $websites = Website::where('syllabus_id', $syllabus->id)->get();
+        $equipments = Equipment::where('syllabus_id', $syllabus->id)->get();
+
+        $qpp = QuestionPaperProfile::where('syllabus_id', $syllabus->id)->get();
+        $qb = QuestionBit::where('syllabus_id', $syllabus->id)->get();
+
+        $cos = $courseOutcomes;
+
+        $pos = ProgrammeOutcome::where('scheme_id', $course->scheme_id)
+            ->whereNull('department_id')
+            ->where('type', 'po')
+            ->get();
+
+        $psos = ProgrammeOutcome::where('scheme_id', $course->scheme_id)
+            ->where('type', 'pso')
+            ->get();
+
+        $mapping = CoPoPsoMapping::where('syllabus_id', $syllabus->id)
+            ->get()
+            ->keyBy(fn ($m) => $m->course_outcome_id.'_'.$m->programme_outcome_id);
 
         return view('expert.syllabus.preview', compact(
             'course',
             'programmes',
+            'sections',
+
             'rationale',
             'industrialOutcomes',
-            'courseOutcomes'
+            'courseOutcomes',
+            'units',
+            'specRows',
+            'practicals',
+            'selfLearning',
+            'tutorial',
+            'instruction',
+            'books',
+            'websites',
+            'equipments',
+            'qpp',
+            'qb',
+            'cos',
+            'pos',
+            'psos',
+            'mapping'
         ));
     }
 
@@ -344,7 +416,25 @@ class EXPERTSyllabusController extends Controller
             'course_master_id' => $courseId,
         ]);
 
+        $course = CourseMaster::findOrFail($courseId);
+
         $data = $request->rows ?? [];
+        $total = 0;
+
+        foreach ($data as $row) {
+
+            $r = (int) ($row['r'] ?? 0);
+            $u = (int) ($row['u'] ?? 0);
+            $a = (int) ($row['a'] ?? 0);
+
+            $total += ($r + $u + $a);
+        }
+
+        if ($total != $course->sa_th) {
+            return back()
+                ->withInput()
+                ->withErrors('The Total Theory must be equal to '.$course->sa_th);
+        }
 
         foreach ($data as $unitId => $row) {
 
@@ -818,8 +908,7 @@ class EXPERTSyllabusController extends Controller
     public function saveQuestionBits(Request $request, $courseId)
     {
         $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
-        $data = $request->bits ?? [];
-
+        $data = $request->bits ?? [];   // bits[unitId][qNo][bitLabel] = marks
         $errors = [];
 
         foreach ($data as $unitId => $questions) {
@@ -834,33 +923,42 @@ class EXPERTSyllabusController extends Controller
 
             $unitLabel = $qpp->syllabusUnit->unit_no ?? $unitId;
 
-            // actual distribution = sum of q1..q6 marks from QPP
-            $actualDistribution = (int) ($qpp->q1_marks ?? 0)
-                                + (int) ($qpp->q2_marks ?? 0)
-                                + (int) ($qpp->q3_marks ?? 0)
-                                + (int) ($qpp->q4_marks ?? 0)
-                                + (int) ($qpp->q5_marks ?? 0)
-                                + (int) ($qpp->q6_marks ?? 0);
+            // Expected per-Q marks from QPP
+            $qExpected = [];
+            for ($q = 1; $q <= 6; $q++) {
+                $qExpected[$q] = (int) ($qpp->{'q'.$q.'_marks'} ?? 0);
+            }
 
-            $unitTotal = 0;
+            // Actual distribution = sum of all Q marks from QPP
+            $actualDistribution = array_sum($qExpected);
 
-            foreach ($questions as $qNo => $bitsArr) {
+            // ── Validate vertical totals (per Q across all bits) ──────────────────
+            for ($q = 1; $q <= 6; $q++) {
+
+                if (! isset($questions[$q])) {
+                    continue;
+                }
 
                 $qTotal = 0;
-                foreach ($bitsArr as $bitLabel => $marks) {
+                foreach ($questions[$q] as $bitLabel => $marks) {
                     $qTotal += (int) $marks;
                 }
 
-                // each question's bits must sum to that question's marks in QPP
-                $expectedQ = (int) ($qpp->{'q'.$qNo.'_marks'} ?? 0);
-                if ($expectedQ > 0 && $qTotal !== $expectedQ) {
-                    $errors[] = "Unit {$unitLabel} → Q{$qNo}: got {$qTotal}, expected {$expectedQ}";
-                }
+                $expectedQ = $qExpected[$q];
 
-                $unitTotal += $qTotal;
+                if ($expectedQ > 0 && $qTotal !== $expectedQ) {
+                    $errors[] = "Unit {$unitLabel} → Q{$q}: got {$qTotal}, expected {$expectedQ}";
+                }
             }
 
-            // unit bits total must equal actual distribution (sum of q1..q6)
+            // ── Validate horizontal total (all bits across all Qs for this unit) ──
+            $unitTotal = 0;
+            foreach ($questions as $qNo => $bitsArr) {
+                foreach ($bitsArr as $bitLabel => $marks) {
+                    $unitTotal += (int) $marks;
+                }
+            }
+
             if ($unitTotal !== $actualDistribution) {
                 $errors[] = "Unit {$unitLabel} sub-total: got {$unitTotal}, expected {$actualDistribution}";
             }
@@ -869,7 +967,7 @@ class EXPERTSyllabusController extends Controller
         if (! empty($errors)) {
             return back()
                 ->withInput()
-                ->with('error', implode('<br>', $errors));
+                ->withErrors($errors);
         }
 
         DB::transaction(function () use ($data, $syllabus) {
@@ -881,6 +979,10 @@ class EXPERTSyllabusController extends Controller
                 $qpp = QuestionPaperProfile::where('syllabus_id', $syllabus->id)
                     ->where('syllabus_unit_id', $unitId)
                     ->first();
+
+                if (! $qpp) {
+                    continue;
+                }
 
                 foreach ($questions as $qNo => $bitsArr) {
                     foreach ($bitsArr as $bitLabel => $marks) {
@@ -905,5 +1007,79 @@ class EXPERTSyllabusController extends Controller
         });
 
         return back()->with('success', 'Question bits saved successfully');
+    }
+
+    public function mapping($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
+
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
+
+        $departmentId = Auth::user()->department_id;
+
+        // COs
+        $cos = CourseOutcome::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        // POs (global)
+        $pos = ProgrammeOutcome::where('scheme_id', $course->scheme_id)
+            ->whereNull('department_id')
+            ->where('type', 'po')
+            ->orderBy('order_no')
+            ->get();
+
+        // PSOs (only if programme dept)
+        $psos = ProgrammeOutcome::where('scheme_id', $course->scheme_id)
+            ->where('department_id', $departmentId)
+            ->where('type', 'pso')
+            ->orderBy('order_no')
+            ->get();
+
+        $mappings = CoPoPsoMapping::where('syllabus_id', $syllabus->id)
+            ->get()
+            ->keyBy(fn ($m) => $m->course_outcome_id.'_'.$m->programme_outcome_id);
+
+        return view('expert.syllabus.mapping', compact(
+            'course',
+            'syllabus',
+            'cos',
+            'pos',
+            'psos',
+            'mappings',
+            'scheme'
+        ));
+    }
+
+    public function saveMapping(Request $request, $courseId)
+    {
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
+
+        $data = $request->mapping ?? [];
+
+        DB::transaction(function () use ($data, $syllabus) {
+
+            CoPoPsoMapping::where('syllabus_id', $syllabus->id)->delete();
+
+            foreach ($data as $coId => $poList) {
+
+                foreach ($poList as $poId => $level) {
+
+                    if (! $level) {
+                        continue;
+                    }
+
+                    CoPoPsoMapping::create([
+                        'syllabus_id' => $syllabus->id,
+                        'course_outcome_id' => $coId,
+                        'programme_outcome_id' => $poId,
+                        'level' => $level,
+                    ]);
+                }
+            }
+        });
+
+        return back()->with('success', 'Mapping saved successfully');
     }
 }

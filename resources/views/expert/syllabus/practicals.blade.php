@@ -34,10 +34,8 @@
                             <div class="grid grid-cols-1">
                                 @foreach ($units as $unit)
                                     <label class="flex items-center gap-1 text-sm">
-                                        <input type="checkbox"
-                                            name="tasks[{{ $tIndex }}][units][]"
-                                            value="{{ $unit->id }}"
-                                            class="unit-checkbox accent-blue-600"
+                                        <input type="checkbox" name="tasks[{{ $tIndex }}][units][]"
+                                            value="{{ $unit->id }}" class="unit-checkbox accent-blue-600"
                                             {{ $task->units->contains($unit->id) ? 'checked' : '' }}>
                                         Unit {{ $unit->unit_no }} - {{ $unit->title }}
                                     </label>
@@ -51,8 +49,7 @@
                                 Lab Learning Outcome
                             </label>
                             <textarea name="tasks[{{ $tIndex }}][outcome]" required
-                                class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                                rows="3">{{ $task->lab_learning_outcome }}</textarea>
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500" rows="3">{{ $task->lab_learning_outcome }}</textarea>
                         </div>
 
                         {{-- Exercise --}}
@@ -61,15 +58,14 @@
                                 Experiment / Task
                             </label>
                             <textarea name="tasks[{{ $tIndex }}][exercise]" required
-                                class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                                rows="3">{{ $task->exercise }}</textarea>
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500" rows="3">{{ $task->exercise }}</textarea>
                         </div>
 
                         {{-- Hours --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">Hours</label>
-                            <input type="number" name="tasks[{{ $tIndex }}][hours]" value="{{ $task->hours }}"
-                                required
+                            <input type="number" min="0" name="tasks[{{ $tIndex }}][hours]"
+                                value="{{ $task->hours }}" required
                                 class="w-24 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                         </div>
 
@@ -97,13 +93,11 @@
 
     </div>
 
-{{-- 
+    {{-- 
 // ── Units list built by Blade once — reused when adding new tasks ──────
         // value="{{ $unit->id }}" is critical — without it the checkbox submits 'on' --}}
     {{-- ================= JS ================= --}}
     <script>
-
-
         const UNITS_HTML = `
             @foreach ($units as $unit)
                 <label class="flex items-center gap-1 text-sm">
@@ -193,7 +187,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-600 mb-1">Hours</label>
-                    <input type="number" name="tasks[${index}][hours]" required
+                    <input type="number" min="0" name="tasks[${index}][hours]" required
                         class="w-24 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 </div>
             `;
@@ -201,6 +195,5 @@
             document.getElementById('taskContainer').appendChild(div);
             reIndexTasks(); // sets correct name on newly added checkboxes too
         }
-
     </script>
 @endsection

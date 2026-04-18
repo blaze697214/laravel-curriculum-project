@@ -15,6 +15,7 @@ use App\Http\Controllers\hod\HODClassAwardController;
 use App\Http\Controllers\hod\HODCourseController;
 use App\Http\Controllers\hod\HODDashBoardController;
 use App\Http\Controllers\hod\HODELectiveGroupController;
+use App\Http\Controllers\hod\HODPSOController;
 use App\Http\Controllers\hod\HODUserController;
 // use App\Http\Controllers\moderator\MODERATORDashBoardController;
 use Illuminate\Support\Facades\Route;
@@ -31,7 +32,8 @@ Route::middleware(['auth', 'role:cdc'])->prefix('/cdc')->name('cdc.')->group(fun
 
     Route::get('/dashboard', [CDCDashBoardController::class, 'dashboard']);
 
-    Route::get('/departments', [CDCDepartmentController::class, 'index'])->name('departments.index');
+    Route::get('/departments', [CDCDepartmentController::class, 'index'])
+        ->name('departments.index');
 
     Route::post('/departments', [CDCDepartmentController::class, 'store'])->name('departments.store');
 
@@ -57,11 +59,21 @@ Route::middleware(['auth', 'role:cdc'])->prefix('/cdc')->name('cdc.')->group(fun
 
     Route::post('/schemes/{scheme}/categories', [CDCSchemeCategoryController::class, 'store'])->name('schemes.categories.store');
 
-    Route::patch('/categories/{category}', [CDCSchemeCategoryController::class, 'update'])->name('schemes.categories.update');
+    Route::patch('/schemes/categories/{category}', [CDCSchemeCategoryController::class, 'update'])->name('schemes.categories.update');
 
-    Route::delete('/categories/{category}', [CDCSchemeCategoryController::class, 'destroy'])->name('schemes.categories.destroy');
+    Route::delete('/schemes/categories/{category}', [CDCSchemeCategoryController::class, 'destroy'])->name('schemes.categories.destroy');
 
     Route::post('/schemes/{scheme}/categories/next', [CDCSchemeCategoryController::class, 'next'])->name('schemes.categories.next');
+
+    Route::get('/schemes/{scheme}/po', [CDCSchemeController::class, 'createPO'])
+        ->name('schemes.po.create');
+
+    Route::post('/schemes/{scheme}/po', [CDCSchemeController::class, 'storePO'])
+        ->name('schemes.po.store');
+
+    Route::get('/schemes/create/next', [CDCSchemeController::class, 'nextAfterCreate'])->name('schemes.create.next');
+
+    Route::get('/schemes/edit/next', [CDCSchemeController::class, 'nextAfterEdit'])->name('schemes.edit.next');
 
     // Edit Scheme - Page 1 (listing)
     Route::get('/schemes/edit', [CDCSchemeController::class, 'editIndex'])->name('schemes.edit.index');
@@ -84,19 +96,19 @@ Route::middleware(['auth', 'role:cdc'])->prefix('/cdc')->name('cdc.')->group(fun
         ->name('schemes.award.store');
 
     // EDIT FLOW - Categories
-    Route::get('/cdc/schemes/{scheme}/edit/categories', [CDCSchemeController::class, 'categories'])
+    Route::get('/schemes/{scheme}/edit/categories', [CDCSchemeController::class, 'categories'])
         ->name('schemes.edit.categories');
 
-    Route::post('/cdc/schemes/{scheme}/edit/categories', [CDCSchemeController::class, 'storeCategory'])
+    Route::post('/schemes/{scheme}/edit/categories', [CDCSchemeController::class, 'storeCategory'])
         ->name('schemes.edit.categories.store');
 
-    Route::patch('/cdc/schemes/edit/categories/{category}', [CDCSchemeController::class, 'updateCategory'])
+    Route::patch('/schemes/edit/categories/{category}', [CDCSchemeController::class, 'updateCategory'])
         ->name('schemes.edit.categories.update');
 
-    Route::delete('/cdc/schemes/edit/categories/{category}', [CDCSchemeController::class, 'destroyCategory'])
+    Route::delete('/schemes/edit/categories/{category}', [CDCSchemeController::class, 'destroyCategory'])
         ->name('schemes.edit.categories.destroy');
 
-    Route::post('/cdc/schemes/{scheme}/edit/categories/next', [CDCSchemeController::class, 'nextAfterCategories'])
+    Route::post('/schemes/{scheme}/edit/categories/next', [CDCSchemeController::class, 'nextAfterCategories'])
         ->name('schemes.edit.categories.next');
 
     // Show edit award rules page
@@ -106,6 +118,15 @@ Route::middleware(['auth', 'role:cdc'])->prefix('/cdc')->name('cdc.')->group(fun
     // Update rules
     Route::patch('/schemes/{scheme}/edit/award-rules', [CDCSchemeController::class, 'updateAwardRules'])
         ->name('schemes.edit.award.update');
+
+    Route::post('/schemes/{scheme}/edit/award-rules/next', [CDCSchemeController::class, 'nextAfterClassAward'])
+        ->name('schemes.edit.award.next');
+
+    Route::get('/schemes/{scheme}/po/edit', [CDCSchemeController::class, 'editPO'])
+        ->name('schemes.po.edit');
+
+    Route::post('/schemes/{scheme}/po/update', [CDCSchemeController::class, 'updatePO'])
+        ->name('schemes.po.update');
 
     // Manage schemes page
     Route::get('/schemes/manage', [CDCSchemeController::class, 'manage'])
@@ -151,6 +172,12 @@ Route::middleware(['auth', 'role:cdc'])->prefix('/cdc')->name('cdc.')->group(fun
 Route::middleware(['auth', 'role:hod', 'active.scheme'])->prefix('/hod')->name('hod.')->group(function () {
 
     Route::get('/dashboard', [HODDashBoardController::class, 'dashboard']);
+
+    Route::get('/pso', [HODPSOController::class, 'pso'])
+        ->name('pso');
+
+    Route::post('/pso', [HODPSOController::class, 'savePso'])
+        ->name('pso.save');
 
     Route::get('/courses/create', [HODCourseController::class, 'create'])
         ->name('courses.create');
@@ -233,7 +260,7 @@ Route::middleware(['auth', 'role:hod', 'active.scheme'])->prefix('/hod')->name('
 
 // });
 
-Route::middleware(['auth', 'role:expert','active.scheme'])->prefix('/expert')->name('expert.')->group(function () {
+Route::middleware(['auth', 'role:expert', 'active.scheme'])->prefix('/expert')->name('expert.')->group(function () {
 
     Route::get('/dashboard', [EXPERTDashBoardController::class, 'index'])->name('dashboard');
 
@@ -245,85 +272,83 @@ Route::middleware(['auth', 'role:expert','active.scheme'])->prefix('/expert')->n
         Route::get('/rationale', [EXPERTSyllabusController::class, 'rationale'])
             ->name('rationale');
 
-
-
-Route::post('/rationale', [EXPERTSyllabusController::class, 'saveRationale'])
-    ->name('rationale.save');
+        Route::post('/rationale', [EXPERTSyllabusController::class, 'saveRationale'])
+            ->name('rationale.save');
 
         Route::get('/industrial-outcome', [EXPERTSyllabusController::class, 'industrialOutcome'])
             ->name('industrial');
 
-
-
-Route::post('/industrial-outcome', [EXPERTSyllabusController::class, 'saveIndustrialOutcome'])
-    ->name('industrial.save');
+        Route::post('/industrial-outcome', [EXPERTSyllabusController::class, 'saveIndustrialOutcome'])
+            ->name('industrial.save');
 
         Route::get('/course-outcome', [EXPERTSyllabusController::class, 'courseOutcome'])
             ->name('co');
 
-Route::post('/course-outcome', [EXPERTSyllabusController::class, 'saveCourseOutcome'])
+        Route::post('/course-outcome', [EXPERTSyllabusController::class, 'saveCourseOutcome'])
             ->name('co.save');
 
         Route::get('/course-details', [EXPERTSyllabusController::class, 'courseDetails'])
             ->name('details');
 
-Route::post('/course-details', [EXPERTSyllabusController::class, 'saveCourseDetails'])
-    ->name('details.save');
+        Route::post('/course-details', [EXPERTSyllabusController::class, 'saveCourseDetails'])
+            ->name('details.save');
 
         Route::get('/specification', [EXPERTSyllabusController::class, 'specification'])
             ->name('specification');
 
-Route::post('/specification', [EXPERTSyllabusController::class, 'saveSpecification'])
-    ->name('specification.save');
+        Route::post('/specification', [EXPERTSyllabusController::class, 'saveSpecification'])
+            ->name('specification.save');
 
         Route::get('/practicals', [EXPERTSyllabusController::class, 'practicals'])
-    ->name('practicals');
+            ->name('practicals');
 
-Route::post('/practicals', [EXPERTSyllabusController::class, 'savePracticals'])
-    ->name('practicals.save');
+        Route::post('/practicals', [EXPERTSyllabusController::class, 'savePracticals'])
+            ->name('practicals.save');
 
-            Route::get('/self-learning', [EXPERTSyllabusController::class, 'selfLearning'])
-    ->name('self-learning');
+        Route::get('/self-learning', [EXPERTSyllabusController::class, 'selfLearning'])
+            ->name('self-learning');
 
-Route::post('/self-learning', [EXPERTSyllabusController::class, 'saveSelfLearning'])
-    ->name('self-learning.save');
+        Route::post('/self-learning', [EXPERTSyllabusController::class, 'saveSelfLearning'])
+            ->name('self-learning.save');
 
         Route::get('/tutorial', [EXPERTSyllabusController::class, 'tutorial'])
             ->name('tutorial');
 
-Route::post('/tutorial', [EXPERTSyllabusController::class, 'saveTutorial'])
-    ->name('tutorial.save');
+        Route::post('/tutorial', [EXPERTSyllabusController::class, 'saveTutorial'])
+            ->name('tutorial.save');
 
         Route::get('/instruction', [EXPERTSyllabusController::class, 'instruction'])
             ->name('instruction');
 
-
-Route::post('/instruction', [EXPERTSyllabusController::class, 'saveInstruction'])
-    ->name('instruction.save');
+        Route::post('/instruction', [EXPERTSyllabusController::class, 'saveInstruction'])
+            ->name('instruction.save');
 
         Route::get('/assessment', [EXPERTSyllabusController::class, 'assessment'])
             ->name('assessment');
 
         Route::get('/books', [EXPERTSyllabusController::class, 'books'])
-            ->name('books');         
+            ->name('books');
 
-Route::post('/books', [EXPERTSyllabusController::class, 'saveBooks'])
-    ->name('books.save');
+        Route::post('/books', [EXPERTSyllabusController::class, 'saveBooks'])
+            ->name('books.save');
 
         Route::get('/websites', [EXPERTSyllabusController::class, 'websites'])
-    ->name('websites');
+            ->name('websites');
 
-Route::post('/websites', [EXPERTSyllabusController::class, 'saveWebsites'])
-    ->name('websites.save');
+        Route::post('/websites', [EXPERTSyllabusController::class, 'saveWebsites'])
+            ->name('websites.save');
 
         Route::get('/equipment', [EXPERTSyllabusController::class, 'equipments'])
             ->name('equipment');
 
-Route::post('/equipments', [EXPERTSyllabusController::class, 'saveEquipments'])
-    ->name('equipments.save');
+        Route::post('/equipments', [EXPERTSyllabusController::class, 'saveEquipments'])
+            ->name('equipments.save');
 
         Route::get('/mapping', [EXPERTSyllabusController::class, 'mapping'])
             ->name('mapping');
+
+        Route::post('/mapping', [EXPERTSyllabusController::class, 'saveMapping'])
+            ->name('mapping.save');
 
         Route::get('/question-paper-profile', [EXPERTSyllabusController::class, 'questionPaperProfile'])
             ->name('qpp');
@@ -332,10 +357,10 @@ Route::post('/equipments', [EXPERTSyllabusController::class, 'saveEquipments'])
             ->name('qpp.save');
 
         Route::get('/question-bits', [EXPERTSyllabusController::class, 'questionBits'])
-    ->name('qb');
+            ->name('qb');
 
-Route::post('/question-bits', [EXPERTSyllabusController::class, 'saveQuestionBits'])
-    ->name('qb.save');
+        Route::post('/question-bits', [EXPERTSyllabusController::class, 'saveQuestionBits'])
+            ->name('qb.save');
 
     });
 

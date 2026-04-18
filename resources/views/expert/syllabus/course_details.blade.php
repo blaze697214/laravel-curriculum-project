@@ -36,7 +36,8 @@
 
                             <div>
                                 <label class="block text-sm text-gray-600 mb-1">Hours</label>
-                                <input type="number" name="units[{{ $uIndex }}][hours]" value="{{ $unit->hours }}"
+                                <input type="number" min="0" name="units[{{ $uIndex }}][hours]"
+                                    value="{{ $unit->hours }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
                             </div>
 
@@ -167,7 +168,6 @@
 
     {{-- ================= JS ================= --}}
     <script>
-
         // ─── HELPERS ─────────────────────────────────────────────────────────
 
         function getUnitIndex(el) {
@@ -261,7 +261,7 @@
                     </div>
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">Hours</label>
-                        <input type="number" name="units[${index}][hours]" placeholder="Hours"
+                        <input type="number" min="0" name="units[${index}][hours]" placeholder="Hours"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
@@ -288,8 +288,8 @@
         // ─── ADD OUTCOME ──────────────────────────────────────────────────────
 
         function addOutcome(btn) {
-            const unitBlock   = btn.closest('.unit-block');
-            const unitIndex   = getUnitIndex(btn);
+            const unitBlock = btn.closest('.unit-block');
+            const unitIndex = getUnitIndex(btn);
             const outcomesDiv = unitBlock.querySelector('.outcomes');
 
             const div = document.createElement('div');
@@ -310,9 +310,9 @@
         // ─── ADD TOPIC ────────────────────────────────────────────────────────
 
         function addTopic(btn) {
-            const unitBlock  = btn.closest('.unit-block');
-            const unitIndex  = getUnitIndex(btn);
-            const topicsDiv  = unitBlock.querySelector('.topics');
+            const unitBlock = btn.closest('.unit-block');
+            const unitIndex = getUnitIndex(btn);
+            const topicsDiv = unitBlock.querySelector('.topics');
             const topicIndex = topicsDiv.children.length;
 
             const div = document.createElement('div');
@@ -343,9 +343,9 @@
         // ─── ADD SUBTOPIC ─────────────────────────────────────────────────────
 
         function addSubtopic(btn) {
-            const unitIndex   = getUnitIndex(btn);
-            const topicBlock  = btn.closest('.topic-block');
-            const topicIndex  = getTopicIndex(topicBlock);
+            const unitIndex = getUnitIndex(btn);
+            const topicBlock = btn.closest('.topic-block');
+            const topicIndex = getTopicIndex(topicBlock);
             const subtopicsUl = topicBlock.querySelector('.subtopics ul');
 
             const li = document.createElement('li');
@@ -382,6 +382,5 @@
                 btn.closest('li').remove();
             }
         }
-
     </script>
 @endsection

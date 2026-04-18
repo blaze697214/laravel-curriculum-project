@@ -25,6 +25,8 @@ return new class extends Migration
 
             $table->string('po_code'); // PO1, PO2, PSO1, etc.
 
+            $table->enum('type',['po','pso']);
+
             $table->text('description');
 
             $table->unsignedTinyInteger('order_no');

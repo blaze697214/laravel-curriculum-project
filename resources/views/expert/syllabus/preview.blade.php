@@ -1,15 +1,6 @@
 @extends('layouts.syllabus')
 
 @section('content')
-    {{-- ================= BACK BUTTON ================= --}}
-    <div class="mb-6">
-        <a href="{{ route('expert.dashboard') }}">
-            <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded">
-                ← Back to Dashboard
-            </button>
-        </a>
-    </div>
-
 
     {{-- ================= HEADER ================= --}}
     <div class="mb-8">
@@ -240,64 +231,334 @@
     </div>
 
     {{-- ================= 1.0 RATIONALE ================= --}}
-    <div class="mb-6">
 
-        <h4 class="font-semibold text-gray-800 mb-2">
-            1.0 RATIONALE:
-        </h4>
 
-        <p class="text-gray-700 text-sm leading-relaxed text-justify">
-            {{ $rationale }}
-        </p>
-
-    </div>
+    @if (isset($sections['rationale']))
+        <div class="mb-6">
+            <h4>{{ $sections['rationale'] }}.0 RATIONALE</h4>
+            <p>{{ $rationale }}</p>
+        </div>
+    @endif
 
 
 
     {{-- ================= 2.0 INDUSTRIAL OUTCOME ================= --}}
-    <div class="mb-6">
 
-        <h4 class="font-semibold text-gray-800 mb-2">
-            2.0 INDUSTRY / EMPLOYER EXPECTED OUTCOME:
-        </h4>
 
-        <p class="text-gray-700 text-sm mb-3">
-            The Aim of this course is to help the students to attain these industry-identified outcomes
-            through various teaching learning experiences:
-        </p>
+    @if (isset($sections['industrial_outcomes']))
+        <div class="mb-6">
+            <h4>{{ $sections['industrial_outcomes'] }}.0 INDUSTRY OUTCOME</h4>
 
-        <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+            <p class="text-gray-700 text-sm mb-3">
+                The Aim of this course is to help the students to attain these industry-identified outcomes
+                through various teaching learning experiences:
+            </p>
 
-            @foreach ($industrialOutcomes as $item)
-                <li>{{ $item->content }}</li>
-            @endforeach
-
-        </ol>
-
-    </div>
-
+            <ol>
+                @foreach ($industrialOutcomes as $io)
+                    <li>{{ $io->content }}</li>
+                @endforeach
+            </ol>
+        </div>
+    @endif
 
 
     {{-- ================= 3.0 COURSE OUTCOMES ================= --}}
-    <div class="mb-6">
 
-        <h4 class="font-semibold text-gray-800 mb-2">
-            3.0 COURSE OUTCOMES:
-        </h4>
+    @if (isset($sections['course_outcomes']))
+        <div class="mb-6">
+            <h4>{{ $sections['course_outcomes'] }}.0 COURSE OUTCOMES</h4>
+            <p class="text-gray-700 text-sm mb-3">
+                The course content should be taught and learning imparted in such a manner that students are able
+                to acquire required learning outcome in cognitive, psychomotor and affective domain to demonstrate
+                following course outcomes:
+            </p>
+            <ol>
+                @foreach ($courseOutcomes as $co)
+                    <li>{{ $co->description }}</li>
+                @endforeach
+            </ol>
+        </div>
+    @endif
 
-        <p class="text-gray-700 text-sm mb-3">
-            The course content should be taught and learning imparted in such a manner that students are able
-            to acquire required learning outcome in cognitive, psychomotor and affective domain to demonstrate
-            following course outcomes:
-        </p>
+    @if (isset($sections['course_details']))
+        <h4>{{ $sections['course_details'] }}.0 COURSE DETAILS</h4>
 
-        <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+        <table border="1">
+            <tr>
+                <th>Unit</th>
+                <th>Topics</th>
+                <th>Hours</th>
+            </tr>
 
-            @foreach ($courseOutcomes as $co)
-                <li>{{ $co->description }}</li>
+            @foreach ($units as $unit)
+                <tr>
+                    <td>{{ $unit->unit_no }}</td>
+
+                    <td>
+                        @foreach ($unit->topics as $topic)
+                            {{ $topic->content }} <br>
+                        @endforeach
+                    </td>
+
+                    <td>{{ $unit->hours }}</td>
+                </tr>
             @endforeach
 
-        </ol>
+        </table>
+    @endif
 
-    </div>
+    @if (isset($sections['specification_table']))
+        <h4>{{ $sections['specification_table'] }}.0 SPECIFICATION TABLE</h4>
+
+        <table border="1">
+            <tr>
+                <th>Unit</th>
+                <th>R</th>
+                <th>U</th>
+                <th>A</th>
+                <th>Total</th>
+            </tr>
+
+            @foreach ($specRows as $row)
+                <tr>
+                    <td>{{ $row->unit_no }}</td>
+                    <td>{{ $row->remember_marks }}</td>
+                    <td>{{ $row->understand_marks }}</td>
+                    <td>{{ $row->apply_marks }}</td>
+                    <td>{{ $row->total_marks }}</td>
+                </tr>
+            @endforeach
+
+        </table>
+    @endif
+    @if (isset($sections['practicals']))
+        <h4>{{ $sections['practicals'] }}.0 PRACTICALS</h4>
+
+        <table border="1">
+
+            <tr>
+                <th>Sr No</th>
+                <th>Units</th>
+                <th>Learning Outcome</th>
+                <th>Experiment</th>
+                <th>Hours</th>
+            </tr>
+
+            @foreach ($practicals as $i => $p)
+                <tr>
+                    <td>{{ $i + 1 }}</td>
+
+                    <td>
+                        @foreach ($p->units as $u)
+                            {{ $u->unit_no }},
+                        @endforeach
+                    </td>
+
+                    <td>{{ $p->outcome }}</td>
+                    <td>{{ $p->title }}</td>
+                    <td>{{ $p->hours }}</td>
+
+                </tr>
+            @endforeach
+
+        </table>
+    @endif
+    @if (isset($sections['self_learning']))
+        <h4>{{ $sections['self_learning'] }}.0 SELF LEARNING</h4>
+        <ul>
+            @foreach ($selfLearning as $i)
+                <li>{{ $i->content }}</li>
+            @endforeach
+        </ul>
+    @endif
+
+    @if (isset($sections['books']))
+        <h4>{{ $sections['books'] }}.0 BOOKS</h4>
+
+        <table border="1">
+            @foreach ($books as $b)
+                <tr>
+                    <td>{{ $b->author }}</td>
+                    <td>{{ $b->title }}</td>
+                    <td>{{ $b->publication }}</td>
+                </tr>
+            @endforeach
+        </table>
+    @endif
+
+    @if (isset($sections['websites']))
+        <h4>{{ $sections['websites'] }}.0 WEBSITES</h4>
+
+        <ol>
+            @foreach ($websites as $w)
+                <li>{{ $w->url }}</li>
+            @endforeach
+        </ol>
+    @endif
+
+    @if (isset($sections['equipments']))
+        <h4>{{ $sections['equipments'] }}.0 EQUIPMENTS</h4>
+
+        @foreach ($equipments as $e)
+            <p>
+                {{ $e->equipment_name }} <br>
+                {!! nl2br(e($e->specification)) !!}
+            </p>
+        @endforeach
+    @endif
+    @if (isset($sections['mapping']))
+        <h4>{{ $sections['mapping'] }}.0 CO-PO-PSO MAPPING</h4>
+        @php
+            function levelText($l)
+            {
+                return $l == 3 ? 'H' : ($l == 2 ? 'M' : ($l == 1 ? 'L' : ''));
+            }
+        @endphp
+
+
+        <table border="1">
+
+            <tr>
+                <th>CO</th>
+
+                @foreach ($pos as $po)
+                    <th>{{ $po->po_code }}</th>
+                @endforeach
+
+                @foreach ($psos as $pso)
+                    <th>{{ $pso->po_code }}</th>
+                @endforeach
+
+            </tr>
+
+            @foreach ($cos as $co)
+                <tr>
+                    <td>{{ $co->co_code }}</td>
+
+                    @foreach ($pos as $po)
+                        <td>
+                            {{ optional($mapping[$co->id . '_' . $po->id])->level }}
+                        </td>
+                    @endforeach
+
+                    @foreach ($psos as $pso)
+                        <td>
+                            {{ optional($mapping[$co->id . '_' . $pso->id])->level }}
+                        </td>
+                    @endforeach
+
+                </tr>
+            @endforeach
+
+        </table>
+    @endif
+
+    @if (isset($sections['qpp']))
+        <h4>{{ $sections['qpp'] }}.0 SUGGESTED QUESTION PAPER PROFILE</h4>
+
+        <table border="1">
+
+            <tr>
+                <th>Unit</th>
+                <th>CO</th>
+                <th>Marks</th>
+                <th>1.35×</th>
+                <th colspan="6">Questions</th>
+                <th>Total</th>
+            </tr>
+
+            <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                @for ($i = 1; $i <= 6; $i++)
+                    <th>{{ $i }}</th>
+                @endfor
+                <th></th>
+            </tr>
+
+            @foreach ($qpp as $row)
+                @php
+                    $total =
+                        $row->q1_marks +
+                        $row->q2_marks +
+                        $row->q3_marks +
+                        $row->q4_marks +
+                        $row->q5_marks +
+                        $row->q6_marks;
+
+                    $co = $cos->firstWhere('id', $row->course_outcome_id);
+                @endphp
+
+                <tr>
+                    <td>{{ $row->unit_no }}</td>
+                    <td>{{ $co->co_code ?? '' }}</td>
+                    <td>{{ $row->marks_per_unit }}</td>
+                    <td>{{ $row->adjusted_marks }}</td>
+
+                    <td>{{ $row->q1_marks }}</td>
+                    <td>{{ $row->q2_marks }}</td>
+                    <td>{{ $row->q3_marks }}</td>
+                    <td>{{ $row->q4_marks }}</td>
+                    <td>{{ $row->q5_marks }}</td>
+                    <td>{{ $row->q6_marks }}</td>
+
+                    <td>{{ $total }}</td>
+                </tr>
+            @endforeach
+
+        </table>
+    @endif
+
+    @if (isset($sections['qb']))
+        <h4>{{ $sections['qb'] }}.0 QUESTION BITS</h4>
+
+        @php
+            $grouped = $qb->groupBy('unit_no');
+        @endphp
+
+        @foreach ($grouped as $unit => $rows)
+            <h5>Unit {{ $unit }}</h5>
+
+            <table border="1">
+                <tr>
+                    <th>Q</th>
+                    <th>a</th>
+                    <th>b</th>
+                    <th>c</th>
+                    <th>d</th>
+                    <th>e</th>
+                    <th>f</th>
+                    <th>Total</th>
+                </tr>
+
+                @for ($q = 1; $q <= 6; $q++)
+                    @php
+                        $bitsRow = $rows->where('question_no', $q)->keyBy('bit_label');
+
+                        $sum = 0;
+                    @endphp
+
+                    <tr>
+                        <td>Q{{ $q }}</td>
+
+                        @foreach (['a', 'b', 'c', 'd', 'e', 'f'] as $b)
+                            @php
+                                $val = $bitsRow[$b]->marks ?? '';
+                                $sum += $val ?: 0;
+                            @endphp
+
+                            <td>{{ $val }}</td>
+                        @endforeach
+
+                        <td>{{ $sum }}</td>
+
+                    </tr>
+                @endfor
+
+            </table>
+        @endforeach
+    @endif
 @endsection
