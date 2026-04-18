@@ -35,7 +35,7 @@ public function index()
 
         // get syllabus record (adjust if different table)
         $syllabus = Syllabus::where('course_master_id', $course->id)->first();
-        $service = new SyllabusProgressService($syllabus);
+        $service = new SyllabusProgressService($syllabus,$course);
         $status = 'Not Started';
         $progress = $service->getProgress();
 
