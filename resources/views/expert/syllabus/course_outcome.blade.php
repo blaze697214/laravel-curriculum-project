@@ -26,7 +26,7 @@
                     ])->toArray());
                 @endphp
 
-                @foreach ($oldItems as $i => $item)
+                @forelse ($oldItems as $i => $item)
                     <div class="flex items-center gap-3">
 
                         <input type="text"
@@ -47,7 +47,26 @@
                         </button>
 
                     </div>
-                @endforeach
+                @empty
+                    <div class="flex items-center gap-3">
+
+                        <input type="text"
+                            name="outcomes[0][co_code]"
+                            placeholder="CO{{ 1 }}"
+                            class="w-20 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+
+                        <input type="text"
+                            name="outcomes[0][description]"
+                            placeholder="Enter course outcome..."
+                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+
+                        <button type="button" onclick="removeRow(this)"
+                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                            Remove
+                        </button>
+
+                    </div>
+                @endforelse
 
             </div>
 

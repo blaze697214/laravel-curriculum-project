@@ -8,6 +8,7 @@
 
     <div class="bg-white p-6 rounded-xl shadow">
 
+        @if($course->sla_marks > 0)
         <form method="POST" action="{{ route('expert.syllabus.self-learning.save', $course->id) }}">
             @csrf
             <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
@@ -69,6 +70,11 @@
             </div>
 
         </form>
+        @else
+        <div class="flex justify-center h-40 items-center text-xl font-semibold text-gray-400">
+            Self Learning is NOT applicable for this Course
+        </div>
+        @endif
 
     </div>
 

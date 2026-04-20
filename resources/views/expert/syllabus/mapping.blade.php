@@ -1,18 +1,18 @@
 @extends('layouts.syllabus')
 
 @section('content')
-        <h3 class="text-lg text-gray-800 font-semibold mb-4">
-            CO - PO - PSO Mapping 
-            @if(count($psos)<1)
-                <span class="text-gray-400 text-xs font-normal">
-                    No PSOs available
-                </span>
-            @endif
-        </h3>
+    <h3 class="text-lg text-gray-800 font-semibold mb-4">
+        CO - PO - PSO Mapping
+        @if (count($psos) < 1)
+            <span class="text-gray-400 text-xs font-normal">
+                No PSOs available
+            </span>
+        @endif
+    </h3>
 
     <div class="bg-white p-6 rounded-xl shadow">
 
-
+@if(count($cos)>0)
         <form method="POST" action="{{ route('expert.syllabus.mapping.save', $course->id) }}">
             @csrf
             <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
@@ -115,6 +115,10 @@
             </div>
 
         </form>
-
+@else
+<div class="flex justify-center h-40 items-center text-xl font-semibold text-gray-400">
+            Fill out the Course Outcomes to access this page...
+        </div>
+        @endif
     </div>
 @endsection

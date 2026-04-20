@@ -51,7 +51,7 @@ class EXPERTSyllabusController extends Controller
         // =========================
         // SERVICE (for dynamic sections)
         // =========================
-        $service = new SyllabusProgressService($syllabus,$course);
+        $service = new SyllabusProgressService($syllabus, $course);
         $sections = $service->getAvailableSections();
 
         // =========================
@@ -92,7 +92,7 @@ class EXPERTSyllabusController extends Controller
             ->get();
 
         $instruction = SyllabusListItem::where('syllabus_id', $syllabus->id)
-            ->where('type', 'instruction_strategy')
+            ->where('type', 'instructional_activity')
             ->get();
 
         $books = Book::where('syllabus_id', $syllabus->id)->get();
@@ -121,7 +121,6 @@ class EXPERTSyllabusController extends Controller
             'course',
             'programmes',
             'sections',
-
             'rationale',
             'industrialOutcomes',
             'courseOutcomes',
@@ -140,6 +139,67 @@ class EXPERTSyllabusController extends Controller
             'pos',
             'psos',
             'mapping'
+        ));
+    }
+
+    public function sections($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+
+        $syllabus = Syllabus::firstOrCreate(
+            ['course_master_id' => $courseId],
+            ['rationale' => '', 'status' => 'draft', 'created_by' => Auth::id()]
+        );
+
+        $service = new SyllabusProgressService($syllabus, $course);
+
+        $checks = $service->getAllChecks();
+
+        //  SECTION ROUTES MAP
+        $routes = [
+
+            'rationale' => route('expert.syllabus.rationale', $courseId),
+            'industrial_outcomes' => route('expert.syllabus.industrial', $courseId),
+            'course_outcomes' => route('expert.syllabus.co', $courseId),
+            'course_details' => route('expert.syllabus.details', $courseId),
+            'specification_table' => route('expert.syllabus.specification', $courseId),
+            'practicals' => route('expert.syllabus.practicals', $courseId),
+            'self_learning' => route('expert.syllabus.self-learning', $courseId),
+            'tutorial' => route('expert.syllabus.tutorial', $courseId),
+            'instruction' => route('expert.syllabus.instruction', $courseId),
+            'books' => route('expert.syllabus.books', $courseId),
+            'websites' => route('expert.syllabus.websites', $courseId),
+            'equipments' => route('expert.syllabus.equipment', $courseId),
+            'qpp' => route('expert.syllabus.qpp', $courseId),
+            'qb' => route('expert.syllabus.qb', $courseId),
+            'mapping' => route('expert.syllabus.mapping', $courseId),
+        ];
+
+        //  LABELS (for UI)
+        $labels = [
+            'rationale' => 'Rationale',
+            'industrial_outcomes' => 'Industrial Outcomes',
+            'course_outcomes' => 'Course Outcomes',
+            'course_details' => 'Course Details',
+            'specification_table' => 'Specification Table',
+            'practicals' => 'Practical / Lab',
+            'self_learning' => 'Self Learning',
+            'tutorial' => 'Tutorial',
+            'instruction' => 'Instruction Strategies',
+            'books' => 'Books',
+            'websites' => 'Websites',
+            'equipments' => 'Equipments',
+            'qpp' => 'Question Paper Profile',
+            'qb' => 'Question Bits',
+            'mapping' => 'CO-PO-PSO Mapping',
+        ];
+
+        return view('expert.syllabus.sections', compact(
+            'course',
+            'syllabus',
+            'checks',
+            'routes',
+            'labels'
         ));
     }
 
@@ -199,22 +259,20 @@ class EXPERTSyllabusController extends Controller
             'course_master_id' => $courseId,
         ]);
 
-        $items = $request->input('outcomes', []);
-
         // delete old entries
         SyllabusListItem::where('syllabus_id', $syllabus->id)
             ->where('type', 'industrial_outcome')
             ->delete();
 
         // insert new
-        foreach ($items as $index => $content) {
+        foreach ($request->input('outcomes', []) as $index => $outcome) {
 
-            if (trim($content)) {
+            if (! empty(trim($outcome['content'] ?? ''))) {
 
                 SyllabusListItem::create([
                     'syllabus_id' => $syllabus->id,
                     'type' => 'industrial_outcome',
-                    'content' => $content,
+                    'content' => $outcome['content'],
                     'order_no' => $index + 1,
                 ]);
             }
@@ -246,33 +304,40 @@ class EXPERTSyllabusController extends Controller
 
     public function saveCourseOutcome(Request $request, $courseId)
     {
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
-
+        $syllabus = Syllabus::firstOrCreate(['course_master_id' => $courseId]);
         $items = $request->input('outcomes', []);
 
-        CourseOutcome::where('syllabus_id', $syllabus->id)->delete();
+        DB::transaction(function () use ($items, $syllabus) {
 
-        $order = 1;
-        foreach ($items as $item) {
+            $submittedOrders = [];
+            $order = 1;
 
-            $description = trim($item['description'] ?? '');
-            $coCode = trim($item['co_code'] ?? '');
+            foreach ($items as $item) {
+                $description = trim($item['description'] ?? '');
+                $coCode = trim($item['co_code'] ?? '');
+                if (! $description) {
+                    continue;
+                }
 
-            if (! $description) {
-                continue;
+                $submittedOrders[] = $order;
+
+                CourseOutcome::updateOrCreate(
+                    ['syllabus_id' => $syllabus->id, 'order_no' => $order],
+                    [
+                        'co_code' => $coCode ?: 'CO'.$order,
+                        'description' => $description,
+                    ]
+                );
+                $order++;
             }
 
-            CourseOutcome::create([
-                'syllabus_id' => $syllabus->id,
-                'co_code' => $coCode ?: 'CO'.$order,   // fallback if left blank
-                'description' => $description,
-                'order_no' => $order,
-            ]);
-
-            $order++;
-        }
+            // Delete only COs that were removed
+            CourseOutcome::where('syllabus_id', $syllabus->id)
+                ->whereNotIn('order_no', $submittedOrders)
+                ->delete();
+            // Note: CoPoPsoMapping, QPP, QB rows referencing deleted CO ids
+            // will be orphaned — consider cascade deletes in migrations or handle here
+        });
 
         return back()->with('success', 'Course Outcomes saved successfully');
     }
@@ -304,79 +369,110 @@ class EXPERTSyllabusController extends Controller
 
     public function saveCourseDetails(Request $request, $courseId)
     {
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
-
+        $syllabus = Syllabus::firstOrCreate(['course_master_id' => $courseId]);
         $units = $request->input('units', []);
 
-        // ── Delete old data cleanly ──────────────────────────────────────────
-        $unitIds = SyllabusUnit::where('syllabus_id', $syllabus->id)->pluck('id');
-        $topicIds = UnitTopic::whereIn('syllabus_unit_id', $unitIds)->pluck('id');
+        DB::transaction(function () use ($units, $syllabus) {
 
-        UnitSubtopic::whereIn('unit_topic_id', $topicIds)->delete();
-        UnitTopic::whereIn('syllabus_unit_id', $unitIds)->delete();
-        $oldTasks = SyllabusUnit::where('syllabus_id', $syllabus->id)->get();
-        foreach ($oldTasks as $old) {
-            $old->practicalTasks()->detach();
-        }
-        SyllabusUnit::where('syllabus_id', $syllabus->id)->delete();
-        // ─────────────────────────────────────────────────────────────────────
+            $submittedUnitNos = [];
 
-        foreach ($units as $uIndex => $unit) {
-
-            if (! trim($unit['title'] ?? '')) {
-                continue;
-            }
-
-            $unitModel = SyllabusUnit::create([
-                'syllabus_id' => $syllabus->id,
-                'unit_no' => $uIndex + 1,
-                'title' => $unit['title'],
-                'hours' => $unit['hours'] ?? 0,
-                'order_no' => $uIndex + 1,
-            ]);
-
-            // ── Save outcomes ────────────────────────────────────────────────
-            foreach ($unit['outcomes'] ?? [] as $oIndex => $outcome) {
-                if (! trim($outcome)) {
+            foreach ($units as $uIndex => $unit) {
+                if (! trim($unit['title'] ?? '')) {
                     continue;
                 }
 
-                UnitTopic::create([
-                    'syllabus_unit_id' => $unitModel->id,
-                    'type' => 'learning_outcome',
-                    'content' => $outcome,
-                    'order_no' => $oIndex + 1,
-                ]);
-            }
+                $unitNo = $uIndex + 1;
+                $submittedUnitNos[] = $unitNo;
 
-            // ── Save topics + subtopics ──────────────────────────────────────
-            foreach ($unit['topics'] ?? [] as $tIndex => $topic) {
-                if (! trim($topic['title'] ?? '')) {
-                    continue;
-                }
+                // ── Upsert the unit by unit_no (stable identity) ──
+                $unitModel = SyllabusUnit::updateOrCreate(
+                    ['syllabus_id' => $syllabus->id, 'unit_no' => $unitNo],
+                    [
+                        'title' => $unit['title'],
+                        'hours' => $unit['hours'] ?? 0,
+                        'order_no' => $unitNo,
+                    ]
+                );
 
-                $topicModel = UnitTopic::create([
-                    'syllabus_unit_id' => $unitModel->id,
-                    'type' => 'topic',
-                    'content' => $topic['title'],
-                    'order_no' => $tIndex + 1,
-                ]);
-
-                foreach ($topic['subtopics'] ?? [] as $sIndex => $sub) {
-                    if (! trim($sub)) {
+                // ── Outcomes: upsert by order_no within this unit ──
+                $submittedOutcomeOrders = [];
+                foreach ($unit['outcomes'] ?? [] as $oIndex => $outcome) {
+                    if (! trim($outcome)) {
                         continue;
                     }
+                    $submittedOutcomeOrders[] = $oIndex + 1;
 
-                    UnitSubtopic::create([
-                        'unit_topic_id' => $topicModel->id,
-                        'subtopic' => $sub,
-                        'order_no' => $sIndex + 1,
-                    ]);
+                    UnitTopic::updateOrCreate(
+                        ['syllabus_unit_id' => $unitModel->id, 'type' => 'learning_outcome', 'order_no' => $oIndex + 1],
+                        ['content' => $outcome]
+                    );
+                }
+                // Delete outcomes removed by user
+                UnitTopic::where('syllabus_unit_id', $unitModel->id)
+                    ->where('type', 'learning_outcome')
+                    ->whereNotIn('order_no', $submittedOutcomeOrders)
+                    ->delete();
+
+                // ── Topics + subtopics: upsert by order_no within this unit ──
+                $submittedTopicOrders = [];
+                foreach ($unit['topics'] ?? [] as $tIndex => $topic) {
+                    if (! trim($topic['title'] ?? '')) {
+                        continue;
+                    }
+                    $submittedTopicOrders[] = $tIndex + 1;
+
+                    $topicModel = UnitTopic::updateOrCreate(
+                        ['syllabus_unit_id' => $unitModel->id, 'type' => 'topic', 'order_no' => $tIndex + 1],
+                        ['content' => $topic['title']]
+                    );
+
+                    $submittedSubOrders = [];
+                    foreach ($topic['subtopics'] ?? [] as $sIndex => $sub) {
+                        if (! trim($sub)) {
+                            continue;
+                        }
+                        $submittedSubOrders[] = $sIndex + 1;
+
+                        UnitSubtopic::updateOrCreate(
+                            ['unit_topic_id' => $topicModel->id, 'order_no' => $sIndex + 1],
+                            ['subtopic' => $sub]
+                        );
+                    }
+                    // Delete removed subtopics
+                    UnitSubtopic::where('unit_topic_id', $topicModel->id)
+                        ->whereNotIn('order_no', $submittedSubOrders)
+                        ->delete();
+                }
+                // Delete removed topics (and their subtopics via cascade or manually)
+                $removedTopics = UnitTopic::where('syllabus_unit_id', $unitModel->id)
+                    ->where('type', 'topic')
+                    ->whereNotIn('order_no', $submittedTopicOrders)
+                    ->get();
+                foreach ($removedTopics as $rt) {
+                    UnitSubtopic::where('unit_topic_id', $rt->id)->delete();
+                    $rt->delete();
                 }
             }
-        }
+
+            // ── Delete units that were removed ──
+            // Only detach practicals and delete units no longer submitted
+            $removedUnits = SyllabusUnit::where('syllabus_id', $syllabus->id)
+                ->whereNotIn('unit_no', $submittedUnitNos)
+                ->get();
+
+            foreach ($removedUnits as $ru) {
+                $ru->practicalTasks()->detach();
+                // Cascade-delete related spec/QPP/QB rows for truly removed units
+                SpecificationTableRow::where('syllabus_unit_id', $ru->id)->delete();
+                QuestionPaperProfile::where('syllabus_unit_id', $ru->id)->delete();
+                QuestionBit::where('syllabus_unit_id', $ru->id)->delete();
+
+                $topicIds = UnitTopic::where('syllabus_unit_id', $ru->id)->pluck('id');
+                UnitSubtopic::whereIn('unit_topic_id', $topicIds)->delete();
+                UnitTopic::where('syllabus_unit_id', $ru->id)->delete();
+                $ru->delete();
+            }
+        });
 
         return back()->with('success', 'Course Details saved successfully');
     }

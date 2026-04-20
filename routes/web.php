@@ -266,6 +266,9 @@ Route::middleware(['auth', 'role:expert', 'active.scheme'])->prefix('/expert')->
 
     Route::prefix('/syllabus/{course}')->name('syllabus.')->group(function () {
 
+        Route::get('/sections', [EXPERTSyllabusController::class, 'sections'])
+    ->name('sections');
+
         Route::get('/preview', [EXPERTSyllabusController::class, 'preview'])
             ->name('preview');
 
@@ -367,5 +370,5 @@ Route::middleware(['auth', 'role:expert', 'active.scheme'])->prefix('/expert')->
 });
 
 Route::fallback(function () {
-    return 122;
+    return 'Fallback Route';
 });

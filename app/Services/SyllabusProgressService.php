@@ -63,7 +63,7 @@ return collect($this->getAllChecks())
                 ? $this->checkListType('self_learning')
                 : null,
             'tutorial' => $this->checkListType('tutorial'),
-            'instruction' => $this->checkListType('instruction_strategy'),
+            'instruction' => $this->checkListType('instructional_activity'),
             'books' => $this->checkBooks(),
             'websites' => $this->checkWebsites(),
             'equipments' => $this->checkEquipments(),
@@ -84,19 +84,19 @@ return collect($this->getAllChecks())
 
     protected function checkIndustrialOutcomes()
     {
-        return SyllabusListItem::where('syllabus_id', $this->syllabus->id)
+        return SyllabusListItem::where('syllabus_id', $this->syllabus->id ?? '')
             ->where('type', 'industrial_outcome')
             ->exists();
     }
 
     protected function checkCourseOutcomes()
     {
-        return CourseOutcome::where('syllabus_id', $this->syllabus->id)->exists();
+        return CourseOutcome::where('syllabus_id', $this->syllabus->id ?? '')->exists();
     }
 
     protected function checkCourseDetails()
     {
-        $units = SyllabusUnit::where('syllabus_id', $this->syllabus->id)->get();
+        $units = SyllabusUnit::where('syllabus_id', $this->syllabus->id ?? '')->get();
 
         if ($units->isEmpty()) {
             return false;
@@ -118,49 +118,49 @@ return collect($this->getAllChecks())
 
     protected function checkSpecification()
     {
-        return SpecificationTableRow::where('syllabus_id', $this->syllabus->id)->exists();
+        return SpecificationTableRow::where('syllabus_id', $this->syllabus->id ?? '')->exists();
     }
 
     protected function checkPracticals()
     {
-        return PracticalTask::where('syllabus_id', $this->syllabus->id)->exists();
+        return PracticalTask::where('syllabus_id', $this->syllabus->id ?? '')->exists();
     }
 
     protected function checkListType($type)
     {
-        return SyllabusListItem::where('syllabus_id', $this->syllabus->id)
+        return SyllabusListItem::where('syllabus_id', $this->syllabus->id ?? '')
             ->where('type', $type)
             ->exists();
     }
 
     protected function checkBooks()
     {
-        return Book::where('syllabus_id', $this->syllabus->id)->exists();
+        return Book::where('syllabus_id', $this->syllabus->id ?? '')->exists();
     }
 
     protected function checkWebsites()
     {
-        return Website::where('syllabus_id', $this->syllabus->id)->exists();
+        return Website::where('syllabus_id', $this->syllabus->id ?? '')->exists();
     }
 
     protected function checkEquipments()
     {
-        return Equipment::where('syllabus_id', $this->syllabus->id)->exists();
+        return Equipment::where('syllabus_id', $this->syllabus->id ?? '')->exists();
     }
 
     protected function checkQPP()
     {
-        return QuestionPaperProfile::where('syllabus_id', $this->syllabus->id)->exists();
+        return QuestionPaperProfile::where('syllabus_id', $this->syllabus->id ?? '')->exists();
     }
 
     protected function checkQB()
     {
-        return QuestionBit::where('syllabus_id', $this->syllabus->id)->exists();
+        return QuestionBit::where('syllabus_id', $this->syllabus->id ?? '')->exists();
     }
 
     protected function checkMapping()
     {
-        return CoPoPsoMapping::where('syllabus_id', $this->syllabus->id)->exists();
+        return CoPoPsoMapping::where('syllabus_id', $this->syllabus->id ?? '')->exists();
     }
 
     // =============================

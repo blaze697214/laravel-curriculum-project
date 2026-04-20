@@ -12,68 +12,85 @@
     @csrf
     <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
 
-    <div id="container" class="space-y-3">
+   
 
+    <div class="overflow-x-auto">
         @php
             $oldItems = old('items', $websites->map(fn($w) => ['url' => $w->url, 'description' => $w->description])->toArray());
         @endphp
+    <table class="w-full text-sm border-separate border-spacing-y-2">
 
-        @forelse ($oldItems as $index => $item)
-            <div class="flex items-center gap-3">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
+            <tr>
+                <th class="px-4 py-3 w-14">Sr No</th>
+                <th class="px-4 py-3">Website URL</th>
+                <th class="px-4 py-3">Description</th>
+                <th class="px-4 py-3 w-24">Action</th>
+            </tr>
+        </thead>
 
-                <span class="w-6 text-sm text-gray-600">
-                    {{ $index + 1 }}.
-                </span>
+        <tbody id="websiteTable" class="divide-y">
 
-                <input type="text"
-                       name="items[{{ $index }}][url]"
-                       value="{{ $item['url'] ?? '' }}"
-                       placeholder="Enter website URL"
-                       class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm">
+            @forelse ($oldItems as $index => $item)
+                <tr class="bg-white shadow-sm hover:shadow-md transition rounded-lg text-center">
 
-                <input type="text"
-                       name="items[{{ $index }}][description]"
-                       value="{{ $item['description'] ?? '' }}"
-                       placeholder="Description"
-                       class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm">
+                    <td class="px-4 py-3 sr-no">{{ $index + 1 }}</td>
 
-                <button type="button"
-                        onclick="removeRow(this)"
-                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
-                    Remove
-                </button>
+                    <td class="px-4 py-3">
+                        <input type="text"
+                               name="items[{{ $index }}][url]"
+                               value="{{ $item['url'] ?? '' }}"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </td>
 
-            </div>
-        @empty
-            <div class="flex items-center gap-3">
+                    <td class="px-4 py-3">
+                        <input type="text"
+                               name="items[{{ $index }}][description]"
+                               value="{{ $item['description'] ?? '' }}"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </td>
 
-                <span class="w-6 text-sm text-gray-600">
-                    1.
-                </span>
+                    <td class="px-4 py-3">
+                        <button type="button"
+                                onclick="removeRow(this)"
+                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                            Remove
+                        </button>
+                    </td>
 
-                <input type="text"
-                       name="items[0][url]"
-                       value="{{ $item['url'] ?? '' }}"
-                       placeholder="Enter website URL"
-                       class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm">
-                
-                <input type="text"
-                       name="items[0][description]"
-                       value="{{ $item['description'] ?? '' }}"
-                       placeholder="Description"
-                       class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm">
+                </tr>
+            @empty
+                {{-- empty row --}}
+                <tr class="bg-white shadow-sm hover:shadow-md transition rounded-lg text-center">
 
+                    <td class="px-4 py-3 sr-no">1</td>
 
-                <button type="button"
-                        onclick="removeRow(this)"
-                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
-                    Remove
-                </button>
+                    <td class="px-4 py-3">
+                        <input type="text"
+                               name="items[0][url]"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </td>
 
-            </div>
-        @endforelse
+                    <td class="px-4 py-3">
+                        <input type="text"
+                               name="items[0][description]"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </td>
 
-    </div>
+                    <td class="px-4 py-3">
+                        <button type="button"
+                                onclick="removeRow(this)"
+                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                            Remove
+                        </button>
+                    </td>
+
+                </tr>
+            @endforelse
+
+        </tbody>
+    </table>
+</div>
 
     <div class="mt-4 flex gap-3">
         <button type="button"
@@ -99,55 +116,54 @@ let index = {{ count($oldItems) > 0 ? count($oldItems) : 1 }};
 
 function addRow() {
 
-    let container = document.getElementById('container');
+    let table = document.getElementById('websiteTable');
 
-    let div = document.createElement('div');
+    let row = document.createElement('tr');
+    row.classList.add('bg-white', 'shadow-sm', 'hover:shadow-md', 'transition', 'rounded-lg', 'text-center');
 
-    div.classList.add('flex', 'items-center', 'gap-3');
+    row.innerHTML = `
+        <td class="px-4 py-3 sr-no"></td>
 
-    div.innerHTML = `
-        <span class="w-6 text-sm text-gray-600"></span>
+        <td class="px-4 py-3">
+            <input type="text"
+                   name="items[${index}][url]"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+        </td>
 
-        <input type="text"
-               name="items[${index}][url]"
-               placeholder="Enter website URL"
-               class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm">
+        <td class="px-4 py-3">
+            <input type="text"
+                   name="items[${index}][description]"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+        </td>
 
-        <input type="text"
-               name="items[${index}][description]"
-               placeholder="Description"
-               class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm">
-
-
-        <button type="button"
-                onclick="removeRow(this)"
-                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
-            Remove
-        </button>
+        <td class="px-4 py-3">
+            <button type="button"
+                    onclick="removeRow(this)"
+                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                Remove
+            </button>
+        </td>
     `;
 
-    container.appendChild(div);
-
-    updateNumbers();
+    table.appendChild(row);
 
     index++;
+
+    updateSerialNumbers();
 }
 
-function removeRow(btn) {
-    btn.parentElement.remove();
-    updateNumbers();
+function removeRow(button) {
+    button.closest('tr').remove();
+    updateSerialNumbers();
 }
 
-function updateNumbers() {
-    let rows = document.querySelectorAll('#container > div');
+function updateSerialNumbers() {
+    let rows = document.querySelectorAll('#websiteTable tr');
 
     rows.forEach((row, i) => {
-        row.querySelector('span').innerText = (i + 1) + '.';
+        row.querySelector('.sr-no').innerText = i + 1;
     });
 }
-
-// initialize numbering
-updateNumbers();
 
 </script>
 

@@ -8,10 +8,10 @@
 
 <body class="bg-slate-100 font-sans">
 
-    <div class="flex min-h-screen">
+    <div class="flex  items-start">
 
         {{-- ================= SIDEBAR ================= --}}
-        <aside class="w-64 bg-slate-900 text-slate-200 flex flex-col">
+        <aside class="w-64 bg-slate-900 text-slate-200 sticky top-0 self-start">
 
             <div class="p-6 border-b border-slate-700">
                 <h2 class="text-lg font-semibold mb-3">
@@ -23,11 +23,18 @@
 
             </div>
 
-            <nav class="flex-1 mt-4 space-y-1 overflow-y-auto">
+            <nav class="flex-1 mt-4 space-y-1 overflow-y-auto ">
 
-                <a href="{{ route('expert.dashboard') }}"
+                <a href="{{ route('expert.syllabus.preview',$course->id) }}"
                     class="block px-6 py-3 hover:bg-slate-800 transition text-center">
-                    Back to Dashboard
+                    <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium transition cursor-pointer">
+                        PREVIEW
+                    </button>
+                </a>
+
+                <a href="{{ route('expert.syllabus.sections', $course->id) }}"
+                    class="block px-6 py-3 hover:bg-slate-800 border-l-4 border-blue-500 text-white font-semibold">
+                    Sections
                 </a>
 
                 <a href="{{ route('expert.syllabus.rationale', $course->id) }}"
@@ -114,16 +121,17 @@
 
             <div class="p-6 border-t border-slate-700">
 
-            <a href="{{ route('expert.syllabus.preview',$course->id ) }}">
+                <a href="{{ route('expert.dashboard') }}">
 
 
-                <button class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium transition">
-                    PREVIEW
-                </button>
+                    <button
+                        class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium transition">
+                        Back to Dashboard
+                    </button>
 
-            </a>
+                </a>
 
-        </div>
+            </div>
 
         </aside>
 
@@ -135,21 +143,21 @@
             <div class="bg-white rounded-xl shadow p-6 min-h-full">
 
                 {{-- Alerts --}}
-            @if (session('success'))
-                <div id="msg" class="mb-4 p-4 bg-green-100 border border-green-300 text-green-800 rounded">
-                    {{ session('success') }}
-                </div>
-            @endif
+                @if (session('success'))
+                    <div id="msg" class="mb-4 p-4 bg-green-100 border border-green-300 text-green-800 rounded">
+                        {{ session('success') }}
+                    </div>
+                @endif
 
-            @if ($errors->any())
-                <div id="msg" class="mb-4 p-4 bg-red-100 border border-red-300 text-red-800 rounded">
-                    <ul class="list-disc pl-5">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+                @if ($errors->any())
+                    <div id="msg" class="mb-4 p-4 bg-red-100 border border-red-300 text-red-800 rounded">
+                        <ul class="list-disc pl-5">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
                 {{-- COURSE HEADER --}}
                 <div class="mb-6 border-b border-gray-200 pb-4">

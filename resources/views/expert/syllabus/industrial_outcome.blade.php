@@ -27,11 +27,13 @@
                     $oldItems = old('outcomes', $outcomes->pluck('content')->toArray());
                 @endphp
 
-                @foreach ($oldItems as $i => $item)
-                    <div class="flex gap-3 items-center">
+                @forelse ($oldItems as $index => $item)
+                    <div class="flex items-center gap-2">
 
-                        <input type="text" name="outcomes[]" value="{{ $item }}"
-                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <span class="item-label text-sm text-gray-600 w-6 shrink-0"></span>
+
+                        <input type="text" name="outcomes[{{ $index }}][content]" value="{{ $item }}" 
+                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
 
                         <button type="button" onclick="removeRow(this)"
                             class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
@@ -39,7 +41,21 @@
                         </button>
 
                     </div>
-                @endforeach
+                @empty
+                    <div class="flex items-center gap-2">
+
+                        <span class="item-label text-sm text-gray-600 w-6 shrink-0"></span>
+
+                        <input type="text" name="outcomes[0][content]" placeholder="Enter Outcome"
+                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+
+                        <button type="button" onclick="removeRow(this)"
+                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                            Remove
+                        </button>
+
+                    </div>
+                @endforelse
 
             </div>
 
@@ -68,13 +84,17 @@
     {{-- ================= JS ================= --}}
     <script>
         function addRow() {
+            let container = document.getElementById('outcomeContainer');
 
             let div = document.createElement('div');
-            div.className = "flex gap-3 items-center";
+            div.className = "flex items-center gap-2";
 
             div.innerHTML = `
-        <input type="text" name="outcomes[]"
-            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        <span class="item-label text-sm text-gray-600 w-6 shrink-0"></span>
+
+        <input type="text"
+            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter outcome">
 
         <button type="button" onclick="removeRow(this)"
             class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
@@ -82,11 +102,27 @@
         </button>
     `;
 
-            document.getElementById('outcomeContainer').appendChild(div);
+            container.appendChild(div);
+            reIndex();
+        }
+
+        function reIndex() {
+            document.querySelectorAll('#outcomeContainer > div').forEach((row, idx) => {
+
+                const label = row.querySelector('.item-label');
+                if (label) label.textContent = (idx + 1) + '.';
+
+                const input = row.querySelector('input[type="text"]');
+                if (input) input.name = `outcomes[${idx}][content]`;
+            });
         }
 
         function removeRow(btn) {
             btn.parentElement.remove();
+            reIndex();
         }
+        document.addEventListener('DOMContentLoaded', function() {
+            reIndex();
+        });
     </script>
 @endsection

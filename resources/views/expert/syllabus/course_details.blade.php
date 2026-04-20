@@ -14,7 +14,7 @@
 
             <div id="unitContainer" class="space-y-6">
 
-                @foreach ($units as $uIndex => $unit)
+                @forelse ($units as $uIndex => $unit)
                     <div class="unit-block border border-gray-200 rounded-lg p-5" data-unit-index="{{ $uIndex }}">
 
                         {{-- ================= UNIT HEADER ================= --}}
@@ -139,7 +139,120 @@
                         </button>
 
                     </div>
-                @endforeach
+                @empty
+                    <div class="unit-block border border-gray-200 rounded-lg p-5" data-unit-index="0">
+
+                        {{-- ================= UNIT HEADER ================= --}}
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="unit-heading font-semibold text-gray-700"></h4>
+                            <button type="button" onclick="removeUnit(this)"
+                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">
+                                Remove Unit
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1">Unit Title</label>
+                                <input type="text" name="units[0][title]"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1">Hours</label>
+                                <input type="number" min="0" name="units[0][hours]"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                        </div>
+
+
+                        {{-- ================= OUTCOMES ================= --}}
+                        <h5 class="font-medium text-gray-700 mb-2">Major Learning Outcomes</h5>
+
+                        <div class="outcomes space-y-2 mb-3">
+
+                            <div class="flex gap-3 items-center">
+
+                                <span class="outcome-label text-sm text-gray-600 w-5 shrink-0"></span>
+
+                                <input type="text" name="units[0][outcomes][]"
+                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+
+                                <button type="button" onclick="removeRow(this)"
+                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                    Remove
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <button type="button" onclick="addOutcome(this)"
+                            class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded text-sm mb-4">
+                            + Add Outcome
+                        </button>
+
+
+                        {{-- ================= TOPICS ================= --}}
+                        <h5 class="font-medium text-gray-700 mb-2">Topics & Subtopics</h5>
+
+                        <div class="topics space-y-4">
+
+                            <div class="topic-block border border-gray-100 rounded-lg p-3">
+
+                                <div class="flex gap-3 items-center mb-3">
+
+                                    <span class="topic-label text-sm text-gray-600 w-4 shrink-0"></span>
+
+                                    <input type="text" name="units[0][topics][0][title]" placeholder="Topic Title"
+                                        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+
+                                    <button type="button" onclick="removeRow(this)"
+                                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                        Remove
+                                    </button>
+
+                                </div>
+
+                                {{-- SUBTOPICS --}}
+                                <div class="subtopics space-y-2 ml-4">
+                                    <ul class="list-disc ml-5">
+
+                                        <li>
+                                            <div class="flex gap-3 items-center mb-2">
+
+                                                <input type="text" name="units[0][topics][0][subtopics][]"
+                                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+
+                                                <button type="button" onclick="removeRow(this)"
+                                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                                    Remove
+                                                </button>
+
+                                            </div>
+                                        </li>
+
+                                    </ul>
+                                </div>
+
+                                <button type="button" onclick="addSubtopic(this)"
+                                    class="mt-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded text-sm">
+                                    + Add Subtopic
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <button type="button" onclick="addTopic(this)"
+                            class="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded text-sm">
+                            + Add Topic
+                        </button>
+
+                    </div>
+                @endforelse
 
             </div>
 
@@ -366,20 +479,28 @@
         // ─── REMOVE ROW ───────────────────────────────────────────────────────
 
         function removeRow(btn) {
-            const topicBlock = btn.closest('.topic-block');
-            const outcomeRow = btn.closest('.outcomes > div');
 
-            if (topicBlock) {
-                const unitBlock = topicBlock.closest('.unit-block');
-                topicBlock.remove();
-                reIndexAll();
-            } else if (outcomeRow) {
-                const unitBlock = outcomeRow.closest('.unit-block');
+        // Subtopic (li) — most specific
+            const subtopicLi = btn.closest('li');
+            if (subtopicLi) {
+                subtopicLi.remove();
+                return;
+            }
+
+        // Outcome row
+            const outcomeRow = btn.closest('.outcomes > div');
+            if (outcomeRow) {
                 outcomeRow.remove();
                 reIndexAll();
-            } else {
-                // subtopic <li>
-                btn.closest('li').remove();
+                return;
+            }
+
+        // Topic block
+            const topicBlock = btn.closest('.topic-block');
+            if (topicBlock) {
+                topicBlock.remove();
+                reIndexAll();
+                return;
             }
         }
     </script>

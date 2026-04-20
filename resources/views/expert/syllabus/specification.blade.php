@@ -6,79 +6,85 @@
     </h3>
 
     <div class="bg-white p-6 rounded-xl shadow">
-        <form method="POST" action="{{ route('expert.syllabus.specification.save', $course->id) }}">
-            @csrf
-            <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
+        @if (count($units)>0)
+            <form method="POST" action="{{ route('expert.syllabus.specification.save', $course->id) }}">
+                @csrf
+                <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-center border border-gray-200">
-                    <thead class="bg-gray-100 text-gray-700">
-                        <tr>
-                            <th rowspan="2" class="border px-3 py-2">Unit No.</th>
-                            <th rowspan="2" class="border px-3 py-2 text-left">Unit Title</th>
-                            <th colspan="3" class="border px-3 py-2">Distribution of Theory Marks</th>
-                            <th rowspan="2" class="border px-3 py-2">Total</th>
-                        </tr>
-                        <tr>
-                            <th class="border px-3 py-2">R</th>
-                            <th class="border px-3 py-2">U</th>
-                            <th class="border px-3 py-2">A</th>
-                        </tr>
-                    </thead>
-
-                    <tbody class="divide-y">
-                        @foreach ($units as $unit)
-                            @php
-                                $row = $rows[$unit->id] ?? null;
-                                $r = $row->remember_marks ?? 0;
-                                $u = $row->understand_marks ?? 0;
-                                $a = $row->apply_marks ?? 0;
-                            @endphp
-
-                            <tr class="hover:bg-gray-50" data-unit-row>
-                                <td class="border px-3 py-2">{{ $unit->unit_no }}</td>
-                                <td class="border px-3 py-2 text-left">{{ $unit->title }}</td>
-
-                                <td class="border px-3 py-2">
-                                    <input type="number" min="0" name="rows[{{ $unit->id }}][r]"
-                                        value="{{ $r }}"
-                                        class="unit-marks w-16 border border-gray-300 rounded px-2 py-1 text-center focus:ring-2 focus:ring-blue-500">
-                                </td>
-
-                                <td class="border px-3 py-2">
-                                    <input type="number" min="0" name="rows[{{ $unit->id }}][u]"
-                                        value="{{ $u }}"
-                                        class="unit-marks w-16 border border-gray-300 rounded px-2 py-1 text-center focus:ring-2 focus:ring-blue-500">
-                                </td>
-
-                                <td class="border px-3 py-2">
-                                    <input type="number" min="0" name="rows[{{ $unit->id }}][a]"
-                                        value="{{ $a }}"
-                                        class="unit-marks w-16 border border-gray-300 rounded px-2 py-1 text-center focus:ring-2 focus:ring-blue-500">
-                                </td>
-
-                                <td class="border px-3 py-2 font-medium row-total">0</td>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-center border border-gray-200">
+                        <thead class="bg-gray-100 text-gray-700">
+                            <tr>
+                                <th rowspan="2" class="border px-3 py-2">Unit No.</th>
+                                <th rowspan="2" class="border px-3 py-2 text-left">Unit Title</th>
+                                <th colspan="3" class="border px-3 py-2">Distribution of Theory Marks</th>
+                                <th rowspan="2" class="border px-3 py-2">Total</th>
                             </tr>
-                        @endforeach
+                            <tr>
+                                <th class="border px-3 py-2">R</th>
+                                <th class="border px-3 py-2">U</th>
+                                <th class="border px-3 py-2">A</th>
+                            </tr>
+                        </thead>
 
-                        {{-- TOTAL ROW --}}
-                        <tr class="bg-gray-100 font-semibold">
-                            <td colspan="2" class="border px-3 py-2 text-left">TOTAL</td>
-                            <td class="border px-3 py-2" id="grand-total-r">0</td>
-                            <td class="border px-3 py-2" id="grand-total-u">0</td>
-                            <td class="border px-3 py-2" id="grand-total-a">0</td>
-                            <td class="border px-3 py-2" id="grand-total">0</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                        <tbody class="divide-y">
+                            @foreach ($units as $unit)
+                                @php
+                                    $row = $rows[$unit->id] ?? null;
+                                    $r = $row->remember_marks ?? 0;
+                                    $u = $row->understand_marks ?? 0;
+                                    $a = $row->apply_marks ?? 0;
+                                @endphp
 
-            <div class="mt-6">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded">
-                    Save
-                </button>
+                                <tr class="hover:bg-gray-50" data-unit-row>
+                                    <td class="border px-3 py-2">{{ $unit->unit_no }}</td>
+                                    <td class="border px-3 py-2 text-left">{{ $unit->title }}</td>
+
+                                    <td class="border px-3 py-2">
+                                        <input type="number" min="0" name="rows[{{ $unit->id }}][r]"
+                                            value="{{ old('rows.' . $unit->id . '.r', $r) }}"
+                                            class="unit-marks w-16 border border-gray-300 rounded px-2 py-1 text-center focus:ring-2 focus:ring-blue-500">
+                                    </td>
+
+                                    <td class="border px-3 py-2">
+                                        <input type="number" min="0" name="rows[{{ $unit->id }}][u]"
+                                            value="{{ old('rows.' . $unit->id . '.u', $u) }}"
+                                            class="unit-marks w-16 border border-gray-300 rounded px-2 py-1 text-center focus:ring-2 focus:ring-blue-500">
+                                    </td>
+
+                                    <td class="border px-3 py-2">
+                                        <input type="number" min="0" name="rows[{{ $unit->id }}][a]"
+                                            value="{{ old('rows.' . $unit->id . '.a', $a) }}"
+                                            class="unit-marks w-16 border border-gray-300 rounded px-2 py-1 text-center focus:ring-2 focus:ring-blue-500">
+                                    </td>
+
+                                    <td class="border px-3 py-2 font-medium row-total">0</td>
+                                </tr>
+                            @endforeach
+
+                            {{-- TOTAL ROW --}}
+                            <tr class="bg-gray-100 font-semibold">
+                                <td colspan="2" class="border px-3 py-2 text-left">TOTAL</td>
+                                <td class="border px-3 py-2" id="grand-total-r">0</td>
+                                <td class="border px-3 py-2" id="grand-total-u">0</td>
+                                <td class="border px-3 py-2" id="grand-total-a">0</td>
+                                <td class="border px-3 py-2" id="grand-total">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded">
+                        Save
+                    </button>
+                </div>
+            </form>
+        @else
+            <div class="flex justify-center h-40 items-center text-xl font-semibold text-gray-400">
+                Fill out the Course Details to access this page...
             </div>
-        </form>
+        @endif
     </div>
 
     <script>
