@@ -81,32 +81,29 @@ class MODERATORSyllabusApprovalController extends Controller
     }
 
     public function reject(Request $request, Syllabus $syllabus)
-    {
-        $request->validate([
-            'remark' => 'required|string',
-        ]);
+{
+    $request->validate(['remark' => 'required|string']);
 
-        if ($syllabus->status !== 'submitted') {
-            return back()->withErrors('Invalid action');
-        }
-
-
-        DB::transaction(function () use ($request, $syllabus) {
-
-            $syllabus->update([
-                'status' => 'moderator_rejected',
-            ]);
-        // dd($syllabus->id);
-
-            SyllabusRemark::create([
-                'syllabus_id' => Syllabus::findOrFail($syllabus->id)->id,
-                'remark' => $request->remark,
-                'given_by' => Auth::id(),
-            ]);
-        });
-
-        return back()->with('success', 'Syllabus rejected with remarks');
+    if ($syllabus->status !== 'submitted') {
+        return back()->withErrors('Invalid action');
     }
+
+    $syllabusId = $syllabus->id;
+    $userId     = Auth::id();
+    $remark     = $request->remark;
+
+    DB::transaction(function () use ($syllabusId, $userId, $remark) {
+        Syllabus::where('id', $syllabusId)->update(['status' => 'moderator_rejected']);
+
+        SyllabusRemark::create([
+            'syllabus_id' => $syllabusId,
+            'remark'      => $remark,
+            'given_by'    => $userId,
+        ]);
+    });
+
+    return back()->with('success', 'Syllabus rejected with remarks');
+}
 
     public function preview($courseId)
     {

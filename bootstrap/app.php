@@ -13,7 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
-            'active.scheme' => \App\Http\Middleware\EnsureActiveScheme::class
+            'active.scheme' => \App\Http\Middleware\EnsureActiveScheme::class,
+            'syllabus.editable' => \App\Http\Middleware\EnsureSyllabusEditable::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

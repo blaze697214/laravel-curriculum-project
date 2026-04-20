@@ -31,47 +31,65 @@ class HODSyllabusApprovalController extends Controller
 
 public function syllabusIndex()
 {
-    $departmentId = Auth::user()->department_id;
-        $scheme = Scheme::where('is_active', true)->firstOrFail();
+    $department = Auth::user()->department;
+    $scheme     = Scheme::where('is_active', true)->firstOrFail();
+
+    // Get ALL owned courses (not just those with a syllabus)
+    if ($department->type === 'service') {
+        $courseMasterIds = CourseMaster::where('owner_department_id', $department->id)
+            ->where('scheme_id', $scheme->id)
+            ->pluck('id');
+    } else {
+        $courseMasterIds = CourseOffering::whereHas('courseMaster', function ($q) use ($department, $scheme) {
+                $q->where('owner_department_id', $department->id)
+                  ->where('scheme_id', $scheme->id);
+            })
+            ->where('department_id', $department->id)
+            ->pluck('course_master_id');
+    }
 
     $assignments = CourseAssignment::with(['courseMaster', 'expert'])
-        ->whereHas('courseMaster', function ($q) use ($departmentId) {
-            $q->where('department_id', $departmentId);
-        })
-        ->get();
+        ->whereIn('course_master_id', $courseMasterIds)
+        ->get()
+        ->keyBy('course_master_id');
 
     $grouped = [];
 
-    foreach ($assignments as $a) {
+    foreach ($courseMasterIds as $cmId) {
+        $course     = CourseMaster::find($cmId);
+        $assignment = $assignments[$cmId] ?? null;
+        $syllabus   = Syllabus::where('course_master_id', $cmId)->first();
 
-        $course = $a->courseMaster;
+        $service  = new SyllabusProgressService($syllabus, $course);
+        $progress = $syllabus ? $service->getProgress() : 0;
+        $status   = $syllabus ? $syllabus->status : 'not_started';
 
-        $syllabus = Syllabus::where('course_master_id', $course->id)->first();
-
-        if (!$syllabus) continue;
-
-        // 🔥 ONLY moderator approved or already approved
-        if (!in_array($syllabus->status, ['moderator_approved', 'hod_approved'])) {
+        if($status == 'not_started'){
             continue;
         }
 
-        $service = new SyllabusProgressService($syllabus, $course);
-
         $item = [
-            'course' => $course,
-            'expert' => $a->expert,
-            'syllabus' => $syllabus,
-            'progress' => $service->getProgress()
+            'course'    => $course,
+            'expert'    => $assignment?->expert,
+            'syllabus'  => $syllabus,
+            'progress'  => $progress,
+            'status'    => $status,
         ];
 
-        if ($course->department->type === 'programme') {
-            $grouped[$course->semester_no][] = $item;
-        } else {
+        if ($department->type === 'service') {
             $grouped['all'][] = $item;
+        } else {
+            $offering   = CourseOffering::where('course_master_id', $cmId)
+                            ->where('department_id', $department->id)
+                            ->first();
+            $semesterNo = $offering?->semester_no ?? 0;
+            $grouped[$semesterNo][] = $item;
         }
     }
 
-    return view('hod.syllabus.index', compact('grouped','scheme'));
+    ksort($grouped);
+
+    return view('hod.syllabus.index', compact('grouped', 'scheme'));
 }
 
 public function approve(Syllabus $syllabus)

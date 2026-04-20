@@ -294,7 +294,7 @@ Route::middleware(['auth', 'role:expert', 'active.scheme'])->prefix('/expert')->
     Route::post('/syllabus/{course}/submit', [EXPERTSyllabusSubmissionController::class, 'submit'])
         ->name('syllabus.submit');
 
-    Route::prefix('/syllabus/{course}')->name('syllabus.')->group(function () {
+    Route::middleware(['syllabus.editable'])->prefix('/syllabus/{course}')->name('syllabus.')->group(function () {
 
         Route::get('/sections', [EXPERTSyllabusController::class, 'sections'])
             ->name('sections');

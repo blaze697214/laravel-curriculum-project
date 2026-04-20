@@ -3,75 +3,78 @@
 namespace App\Http\Controllers\expert;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\CourseAssignment;
-use App\Models\CourseMaster;
-use App\Models\CourseOffering;
-use App\Models\Syllabus; // or whatever your syllabus table is
+use App\Models\Syllabus;
+use App\Models\SyllabusRemark;
 use App\Services\SyllabusProgressService;
 use Illuminate\Support\Facades\Auth;
 
 class EXPERTDashBoardController extends Controller
 {
+    public function index()
+    {
+        $user = Auth::user();
 
+        $assignments = CourseAssignment::with('courseMaster')
+            ->where('expert_id', $user->id)
+            ->get();
 
-public function index()
-{
-    $user = Auth::user();
+        $courses = $assignments->map(function ($a) {
 
-    // =========================
-    // ASSIGNED COURSES
-    // =========================
-    $assignments = CourseAssignment::with('courseMaster')
-        ->where('expert_id', $user->id) // you renamed to expert, but column still expert_id
-        ->get();
+            $course   = $a->courseMaster;
+            $syllabus = Syllabus::where('course_master_id', $course->id)->first();
+            $service  = new SyllabusProgressService($syllabus, $course);
+            $progress = $syllabus ? $service->getProgress() : 0;
 
-    // =========================
-    // SYLLABUS STATUS (ASSUMED TABLE)
-    // =========================
-    $courses = $assignments->map(function ($a) {
+            // Map actual DB status enum to display status
+            $status = match($syllabus?->status) {
+                'draft'               => 'Draft',
+                'submitted'           => 'Submitted',
+                'moderator_approved'  => 'Moderator Approved',
+                'moderator_rejected'  => 'Rejected',
+                'hod_approved'        => 'Approved',
+                default               => 'Not Started',
+            };
 
-        $course = $a->courseMaster;
+            // Is the syllabus locked for editing?
+            $isLocked = $syllabus && in_array($syllabus->status, [
+                'submitted',
+                'moderator_approved',
+                'hod_approved',
+            ]);
 
-        // get syllabus record (adjust if different table)
-        $syllabus = Syllabus::where('course_master_id', $course->id)->first();
-        $service = new SyllabusProgressService($syllabus,$course);
-        $status = 'Not Started';
-        $progress = $service->getProgress();
-
-        if ($syllabus) {
-
-            if ($syllabus->is_submitted) {
-                $status = 'Submitted';
-            } elseif ($syllabus->is_completed) {
-                $status = 'Completed';
-            } else {
-                $status = 'Draft';
+            // Latest remark if rejected
+            $latestRemark = null;
+            if ($syllabus?->status === 'moderator_rejected') {
+                $latestRemark = SyllabusRemark::where('syllabus_id', $syllabus->id)
+                    ->latest()
+                    ->first();
             }
-        }
 
-        return [
-            'course' => $course,
-            'status' => $status,
-            'progress' => $progress
-        ];
-    });
+            return [
+                'course'        => $course,
+                'syllabus'      => $syllabus,
+                'status'        => $status,
+                'raw_status'    => $syllabus?->status ?? 'not_started',
+                'progress'      => $progress,
+                'is_locked'     => $isLocked,
+                'latest_remark' => $latestRemark,
+            ];
+        });
 
-    // =========================
-    // COUNTS
-    // =========================
-    $total = $courses->count();
+        $total     = $courses->count();
+        $approved  = $courses->whereIn('raw_status', ['hod_approved'])->count();
+        $inReview  = $courses->whereIn('raw_status', ['submitted', 'moderator_approved'])->count();
+        $draft     = $courses->whereIn('raw_status', ['draft', 'moderator_rejected'])->count();
+        $pending   = $courses->where('raw_status', 'not_started')->count();
 
-    $completed = $courses->where('status', 'Completed')->count();
-    $draft = $courses->where('status', 'Draft')->count();
-    $pending = $courses->where('status', 'Not Started')->count();
-
-    return view('expert.dashboard', compact(
-        'courses',
-        'total',
-        'completed',
-        'draft',
-        'pending'
-    ));
-}
+        return view('expert.dashboard', compact(
+            'courses',
+            'total',
+            'approved',
+            'inReview',
+            'draft',
+            'pending'
+        ));
+    }
 }

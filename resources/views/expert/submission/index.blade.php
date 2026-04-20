@@ -15,6 +15,7 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="px-6 py-3 text-left font-semibold text-gray-700">Course</th>
+                    <th class="px-6 py-3 text-left font-semibold text-gray-700">Moderator</th>
                     <th class="px-6 py-3 text-center font-semibold text-gray-700">Progress</th>
                     <th class="px-6 py-3 text-center font-semibold text-gray-700">Status</th>
                     <th class="px-6 py-3 text-left font-semibold text-gray-700">Remarks</th>
@@ -28,6 +29,7 @@
 
                 @php
                 $course = $item['course'];
+                $moderator = $item['moderator'];
                 $syllabus = $item['syllabus'];
                 $progress = $item['progress'];
                 $remarks = $item['remarks'];
@@ -39,6 +41,9 @@
                     {{-- COURSE --}}
                     <td class="px-6 py-4 font-medium text-gray-800">
                         {{ $course->title }}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-800">
+                        {{ $moderator->name }}
                     </td>
                     
                     {{-- PROGRESS --}}
@@ -90,7 +95,7 @@
                     </td>
 
                     {{-- ACTION --}}
-                    <td class="px-6 py-4 text-center flex justify-center gap-5 space-y-2">
+                    <td class="px-6 py-4 text-center flex justify-center items-center gap-5 space-y-2">
 
                         {{-- VIEW --}}
                         <a href="{{ route('expert.syllabus.preview', $course->id) }}">

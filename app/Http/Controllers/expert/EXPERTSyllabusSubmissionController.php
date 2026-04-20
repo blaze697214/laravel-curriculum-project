@@ -8,6 +8,7 @@ use App\Models\CourseMaster;
 use App\Models\Scheme;
 use App\Models\Syllabus;
 use App\Models\SyllabusRemark;
+use App\Models\User;
 use App\Services\SyllabusProgressService;
 use Illuminate\Support\Facades\Auth;
 
@@ -47,6 +48,12 @@ class EXPERTSyllabusSubmissionController extends Controller
                 'syllabus' => $syllabus,
                 'progress' => $progress,
                 'remarks' => $remarks,
+                'moderator' => CourseAssignment::where('course_master_id', $course->id)
+                    ->value('moderator_id')
+                                 ? User::find(
+                                     CourseAssignment::where('course_master_id', $course->id)
+                                         ->value('moderator_id')
+                                 ) : null,
             ];
         }
 
@@ -65,7 +72,7 @@ class EXPERTSyllabusSubmissionController extends Controller
             return back()->withErrors('Complete all sections before submitting');
         }
 
-        if (! in_array($syllabus->status, ['draft', 'rejected'])) {
+        if (! in_array($syllabus->status, ['draft', 'moderator_rejected'])) {
             return back()->withErrors('Syllabus cannot be submitted');
         }
 

@@ -17,8 +17,7 @@ class Syllabus extends Model
         'rationale',
         'created_by',
         'status',
-        'question_multipli
-        er'
+        'question_multiplier'
     ];
 
     protected $table = 'syllabus';
