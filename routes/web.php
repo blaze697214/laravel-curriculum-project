@@ -9,6 +9,7 @@ use App\Http\Controllers\cdc\CDCSchemeVerificationController;
 use App\Http\Controllers\cdc\CDCUserController;
 // use App\Http\Controllers\cdc_dept\CDCDEPTDashBoardController;
 use App\Http\Controllers\expert\EXPERTDashBoardController;
+use App\Http\Controllers\expert\EXPERTSyllabusSubmissionController;
 use App\Http\Controllers\expert\EXPERTSyllabusController;
 use App\Http\Controllers\hod\HODAssignCourseController;
 use App\Http\Controllers\hod\HODClassAwardController;
@@ -16,8 +17,10 @@ use App\Http\Controllers\hod\HODCourseController;
 use App\Http\Controllers\hod\HODDashBoardController;
 use App\Http\Controllers\hod\HODELectiveGroupController;
 use App\Http\Controllers\hod\HODPSOController;
+use App\Http\Controllers\hod\HODSyllabusApprovalController;
 use App\Http\Controllers\hod\HODUserController;
-// use App\Http\Controllers\moderator\MODERATORDashBoardController;
+use App\Http\Controllers\moderator\MODERATORDashBoardController;
+use App\Http\Controllers\moderator\MODERATORSyllabusApprovalController;
 use Illuminate\Support\Facades\Route;
 
 // To add role to middlware function
@@ -236,13 +239,22 @@ Route::middleware(['auth', 'role:hod', 'active.scheme'])->prefix('/hod')->name('
     Route::post('/assign-courses', [HODAssignCourseController::class, 'store'])
         ->name('assign.store');
 
-    // Route::get('/users/moderator', [HODUserController::class, 'moderatorIndex'])->name('users.moderator.index');
+    Route::get('/syllabus', [HODSyllabusApprovalController::class, 'syllabusIndex'])
+        ->name('syllabus.index');
 
-    // Route::post('/users/moderator', [HODUserController::class, 'store'])->name('users.moderator.store');
+    Route::post('/syllabus/{syllabus}/approve', [HODSyllabusApprovalController::class, 'approve'])
+        ->name('syllabus.approve');
 
-    // Route::put('/users/moderator/{id}', [HODUserController::class, 'update'])->name('users.moderator.update');
+    Route::get('/syllabus/{course}/preview', [HODSyllabusApprovalController::class, 'preview'])
+        ->name('syllabus.preview');
 
-    // Route::delete('/users/moderator/{id}', [HODUserController::class, 'destroy'])->name('users.moderator.destroy');
+    Route::get('/users/moderator', [HODUserController::class, 'moderatorIndex'])->name('users.moderator.index');
+
+    Route::post('/users/moderator', [HODUserController::class, 'store'])->name('users.moderator.store');
+
+    Route::put('/users/moderator/{id}', [HODUserController::class, 'update'])->name('users.moderator.update');
+
+    Route::delete('/users/moderator/{id}', [HODUserController::class, 'destroy'])->name('users.moderator.destroy');
 
     Route::get('/users/expert', [HODUserController::class, 'expertIndex'])->name('users.expert.index');
 
@@ -254,20 +266,38 @@ Route::middleware(['auth', 'role:hod', 'active.scheme'])->prefix('/hod')->name('
 
 });
 
-// Route::middleware(['auth', 'role:moderator'])->prefix('/moderator')->name('moderator.')->group(function () {
+Route::middleware(['auth', 'role:moderator'])->prefix('/moderator')->name('moderator.')->group(function () {
 
-//     Route::get('/dashboard', [MODERATORDashBoardController::class, 'dashboard']);
+    Route::get('/dashboard', [MODERATORDashBoardController::class, 'dashboard']);
 
-// });
+    Route::get('/syllabus', [MODERATORSyllabusApprovalController::class, 'index'])
+    ->name('syllabus.index');
+
+Route::post('/syllabus/{syllabus}/approve', [MODERATORSyllabusApprovalController::class, 'approve'])
+    ->name('syllabus.approve');
+
+Route::post('/syllabus/{syllabus}/reject', [MODERATORSyllabusApprovalController::class, 'reject'])
+    ->name('syllabus.reject');
+
+Route::get('/syllabus/{course}/preview', [MODERATORSyllabusApprovalController::class, 'preview'])
+    ->name('syllabus.preview');
+
+});
 
 Route::middleware(['auth', 'role:expert', 'active.scheme'])->prefix('/expert')->name('expert.')->group(function () {
 
     Route::get('/dashboard', [EXPERTDashBoardController::class, 'index'])->name('dashboard');
 
+    Route::get('/syllabus', [EXPERTSyllabusSubmissionController::class, 'expertIndex'])
+        ->name('syllabus.index');
+
+    Route::post('/syllabus/{course}/submit', [EXPERTSyllabusSubmissionController::class, 'submit'])
+        ->name('syllabus.submit');
+
     Route::prefix('/syllabus/{course}')->name('syllabus.')->group(function () {
 
         Route::get('/sections', [EXPERTSyllabusController::class, 'sections'])
-    ->name('sections');
+            ->name('sections');
 
         Route::get('/preview', [EXPERTSyllabusController::class, 'preview'])
             ->name('preview');

@@ -13,24 +13,27 @@ use Illuminate\Support\Facades\Hash;
 
 class HODUserController extends Controller
 {
-    // public function moderatorIndex()
-    // {
-    //     $roles = Role::all();
+    public function moderatorIndex()
+    {
+        $roles = Role::all();
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-    //     $departments = Department::all();
+        $departments = Department::all();
 
-    //     $users = User::with(['roles', 'department'])
-    //         ->whereHas('roles', function ($q) {
-    //             $q->whereIn('name', ['moderator']);
-    //         })
-    //         ->get();
+       $users = User::with(['roles', 'department'])
+            ->where('department_id',Auth::user()->department->id)
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['moderator']);
+            })
+            ->get();
 
-    //     return view('hod.users.moderator', compact(
-    //         'roles',
-    //         'departments',
-    //         'users'
-    //     ));
-    // }
+        return view('hod.users.moderator', compact(
+            'roles',
+            'departments',
+            'users',
+            'scheme'
+        ));
+    }
 
     public function expertIndex()
     {
@@ -80,8 +83,6 @@ class HODUserController extends Controller
 
             'name' => $request->input('name'),
             'email' => $request->input('email'),
-            'department_id' => $request->input('department_id'),
-
         ]);
 
         return back()->with('success', 'User updated');

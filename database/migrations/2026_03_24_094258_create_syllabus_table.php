@@ -27,9 +27,8 @@ return new class extends Migration
             $table->enum('status', [
                 'draft',
                 'submitted',
-                'rejected',
-                // 'moderator_approved',
-                // 'moderator_rejected',
+                'moderator_approved',
+                'moderator_rejected',
                 'hod_approved',
             ])->default('draft');
 

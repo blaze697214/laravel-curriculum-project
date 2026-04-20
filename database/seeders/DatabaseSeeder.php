@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
         $cdcRole = Role::create(['name' => 'cdc']);
         // $cdc_deptRole = Role::create(['name' => 'cdc-dept']);
         $hodRole = Role::create(['name' => 'hod']);
-        // $moderatorRole = Role::create(['name' => 'moderator']);
+        $moderatorRole = Role::create(['name' => 'moderator']);
         $expertRole = Role::create(['name' => 'expert']);
 
         $cdc->roles()->attach($cdcRole->id);

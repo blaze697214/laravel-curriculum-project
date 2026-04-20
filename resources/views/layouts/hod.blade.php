@@ -9,12 +9,12 @@
 
 </head>
 
-<body class="flex bg-slate-100 font-sans">
+<body class=" bg-slate-100 font-sans">
 
     <!-- Sidebar -->
-    <div class="w-55 h-screen bg-slate-900 text-slate-200 flex flex-col justify-between fixed">
+    <div class="flex items-start">
 
-        <div>
+        <aside class="w-55 bg-slate-900 text-slate-200 sticky top-0 self-start">
 
             <!-- Profile -->
             <div class="p-6 border-b border-slate-700">
@@ -35,7 +35,7 @@
 
 
             <!-- Navigation -->
-            <nav class="mt-4 space-y-1">
+            <nav class="mt-4 space-y-1 overflow-y-auto">
 
                 <a href="/hod/dashboard" class="block px-6 py-3 hover:bg-slate-800 transition">
                     Dashboard
@@ -72,48 +72,47 @@
                 <a href="/hod/assign-courses" class="block px-6 py-3 hover:bg-slate-800 transition">
                     Assign Courses
                 </a>
+                <a href="{{ route('hod.syllabus.index') }}" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Syllabus Approval
+                </a>
 
 
                 <h4 class="px-6 py-2 text-xs uppercase text-slate-400 mt-4">
                     Users
                 </h4>
 
-                {{-- <a href="/hod/users/moderator" class="block px-6 py-3 hover:bg-slate-800 transition">
-                    Moderator
-                </a> --}}
+                <a href="/hod/users/moderator" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Moderator Users
+                </a>
 
                 <a href="/hod/users/expert" class="block px-6 py-3 hover:bg-slate-800 transition">
                     Expert Users
                 </a>
 
+                
+
             </nav>
 
-        </div>
+            <!-- Logout -->
+            <div class="p-6 border-t border-slate-700">
 
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
 
-        <!-- Logout -->
-        <div class="p-6 border-t border-slate-700">
+                    <button
+                        class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium transition">
+                        Logout
+                    </button>
 
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
+                </form>
 
-                <button class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium transition">
-                    Logout
-                </button>
+            </div>
 
-            </form>
+        </aside>
 
-        </div>
+        <div class="flex-1 p-8">
 
-    </div>
-
-
-
-    <!-- Main Content -->
-
-    <div class="ml-55 flex-1 p-8 min-h-screen">
-
-        <div class="bg-white shadow rounded-xl p-6 h-full overflow-auto">
+        <div class="bg-white rounded-xl shadow p-6 min-h-full">
 
             {{-- Alerts --}}
             @if (session('success'))
@@ -137,6 +136,15 @@
         </div>
 
     </div>
+
+
+    </div>
+
+
+
+    <!-- Main Content -->
+
+    
 
 </body>
 

@@ -26,6 +26,8 @@
                 );
             @endphp
 
+            
+
             <div class="overflow-x-auto">
                 <table class="w-full text-sm border-separate border-spacing-y-2">
 

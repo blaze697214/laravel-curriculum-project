@@ -40,6 +40,9 @@
                 <a href="/moderator/dashboard" class="block px-6 py-3 hover:bg-slate-800 transition">
                     Dashboard
                 </a>
+                <a href="{{ route('moderator.syllabus.index') }}" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    Syllabus Review
+                </a>
 
 
 

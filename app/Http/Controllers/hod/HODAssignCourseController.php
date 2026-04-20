@@ -54,7 +54,14 @@ class HODAssignCourseController extends Controller
             ->whereHas('roles', function ($q) {
                 $q->whereIn('name', ['expert']);
             })
-            ->where('department_id',$department->id)
+            ->where('department_id', $department->id)
+            ->get();
+
+        $moderator = User::with(['roles', 'department'])
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['moderator']);
+            })
+            ->where('department_id', $department->id)
             ->get();
 
         // =========================
@@ -71,13 +78,19 @@ class HODAssignCourseController extends Controller
             ->where('department_id', $department->id)
             ->get()
             ->groupBy('expert_id');
+        $moderatorAssignments = CourseAssignment::with('courseMaster', 'moderator')
+            ->where('department_id', $department->id)
+            ->get()
+            ->groupBy('moderator_id');
 
         return view('hod.assign.index', compact(
             'courses',
             'scheme',
             'expert',
+            'moderator',
             'assignments',
-            'expertAssignments'
+            'expertAssignments',
+            'moderatorAssignments',
         ));
     }
 
@@ -86,6 +99,7 @@ class HODAssignCourseController extends Controller
         $request->validate([
             'course_master_id' => 'required|exists:course_masters,id',
             'expert_id' => 'required|exists:users,id',
+            'moderator_id' => 'required|exists:users,id',
         ]);
 
         $department = Auth::user()->department;
@@ -113,8 +127,10 @@ class HODAssignCourseController extends Controller
                 'department_id' => $department->id,
             ],
             [
+                'moderator_id' => $request->moderator_id,
+
                 'expert_id' => $expert->id,
-                'assigned_by' => Auth::id()
+                'assigned_by' => Auth::id(),
             ]
         );
 

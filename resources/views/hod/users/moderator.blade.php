@@ -14,6 +14,7 @@
 
         <form method="POST" action="{{ route('hod.users.moderator.store') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @csrf
+            <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
 
             <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">
@@ -147,6 +148,7 @@
                             <form method="POST" action="{{ route('hod.users.moderator.update', $user->id) }}">
                                 @csrf
                                 @method('PUT')
+                                <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
 
                                 <td class="px-4 py-3">
                                     <input type="text" name="name" value="{{ $user->name }}"
@@ -181,6 +183,7 @@
 
                                 @csrf
                                 @method('DELETE')
+                                <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
 
                                 <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
                                     Delete

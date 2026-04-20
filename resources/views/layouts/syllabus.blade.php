@@ -25,9 +25,10 @@
 
             <nav class="flex-1 mt-4 space-y-1 overflow-y-auto ">
 
-                <a href="{{ route('expert.syllabus.preview',$course->id) }}"
+                <a href="{{ route('expert.syllabus.preview', $course->id) }}"
                     class="block px-6 py-3 hover:bg-slate-800 transition text-center">
-                    <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium transition cursor-pointer">
+                    <button
+                        class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium transition cursor-pointer">
                         PREVIEW
                     </button>
                 </a>
