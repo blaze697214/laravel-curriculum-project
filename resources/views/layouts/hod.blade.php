@@ -13,11 +13,11 @@
 
     <!-- Sidebar -->
     <div class="flex items-start">
-
-        <aside class="w-55 bg-slate-900 text-slate-200 sticky top-0 self-start">
-
+        <aside class="w-55 bg-slate-900 text-slate-200 sticky @if(auth()->user()->department->type == 'service') h-screen flex flex-col justify-between @endif top-0 self-start">
+            
             <!-- Profile -->
-            <div class="p-6 border-b border-slate-700">
+            <div>
+                <div class="p-6 border-b border-slate-700">
 
                 <h3 class="text-lg font-semibold">
                     {{ auth()->user()->name }}
@@ -89,9 +89,10 @@
                     Expert Users
                 </a>
 
-                
+
 
             </nav>
+            </div>
 
             <!-- Logout -->
             <div class="p-6 border-t border-slate-700">
@@ -144,7 +145,7 @@
 
     <!-- Main Content -->
 
-    
+
 
 </body>
 

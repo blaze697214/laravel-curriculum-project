@@ -32,16 +32,16 @@
 
 {{-- ================= PENDING REVIEW ================= --}}
 @if($pendingCourses->count() > 0)
-<div class="bg-white rounded-xl shadow overflow-hidden mb-6">
+<div class="bg-white rounded-xl shadow overflow-hidden mb-6 px-5 py-3">
 
-    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+    <div class="px-4 py-4 border-gray-100 flex items-center justify-between">
         <h2 class="text-lg font-semibold text-gray-800">Pending Review</h2>
         <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-1 rounded-full">
             {{ $pendingCourses->count() }} awaiting
         </span>
     </div>
 
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto rounded-xl overflow-hidden shadow">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                 <tr>
@@ -93,13 +93,13 @@
 
 
 {{-- ================= ALL COURSES ================= --}}
-<div class="bg-white rounded-xl shadow overflow-hidden">
+<div class="bg-white rounded-xl shadow overflow-hidden px-5 py-3">
 
-    <div class="px-6 py-4 border-b border-gray-100">
+    <div class="px-4 py-4 border-gray-100">
         <h2 class="text-lg font-semibold text-gray-800">All Assigned Courses</h2>
     </div>
 
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto rounded-lg shadow">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                 <tr>

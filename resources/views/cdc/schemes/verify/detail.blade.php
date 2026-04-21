@@ -42,12 +42,12 @@
 
                             @if ($status['scheme_at_glance'])
                                 <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded">
-                                Configured
-                            </span>
+                                    Configured
+                                </span>
                             @else
                                 <span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded">
-                                        Missing
-                                    </span>
+                                    Missing
+                                </span>
                             @endif
 
                         </td>
@@ -55,7 +55,8 @@
                         <td class="px-4 py-3">
 
                             @if ($status['scheme_at_glance'])
-                                <a href="{{ route('cdc.schemes.verify.preview.scheme', [$scheme->id, $department->id]) }}">
+                                {{-- {{ route('cdc.schemes.verify.preview.scheme', [$scheme->id, $department->id]) }} --}}
+                                <a href="">
                                     <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded">
                                         View
                                     </button>
@@ -82,12 +83,12 @@
 
                             @if ($status['all_semesters_configured'])
                                 <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded">
-                                Configured
-                            </span>
+                                    Configured
+                                </span>
                             @else
                                 <span class="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700 rounded">
-                                        Incomplete
-                                    </span>
+                                    Incomplete
+                                </span>
                             @endif
 
                         </td>
@@ -116,12 +117,12 @@
 
                             @if ($status['class_award'])
                                 <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded">
-                                Configured
-                            </span>
+                                    Configured
+                                </span>
                             @else
                                 <span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded">
-                                        Missing
-                                    </span>
+                                    Missing
+                                </span>
                             @endif
 
                         </td>
@@ -129,8 +130,7 @@
                         <td class="px-4 py-3">
 
                             @if ($status['class_award'])
-                                <a
-                                    href="{{ route('cdc.schemes.verify.preview.classaward', [$scheme->id, $department->id]) }}">
+                                <a {{-- {{ route('cdc.schemes.verify.preview.classaward', [$scheme->id, $department->id]) }} --}} href="">
                                     <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded">
                                         View
                                     </button>
@@ -141,6 +141,39 @@
                                 </button>
                             @endif
 
+                        </td>
+
+                    </tr>
+
+                    <tr class="hover:bg-gray-50 border-gray-200">
+
+                        <td class="px-4 py-3 ">
+                            Syllabus
+                        </td>
+
+                        <td class="px-4 py-3">
+
+                            @if ($status['syllabus'])
+                                <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded">
+                                    Completed
+                                </span>
+                            @else
+                                <span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded">
+                                    Pending
+                                </span>
+                            @endif
+
+                        </td>
+
+                        <td class="px-4 py-3">
+
+                                <a
+                                    href="{{ route('cdc.schemes.syllabus', [$scheme->id]) }}">
+                                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded">
+                                        View
+                                    </button>
+                                </a>
+                            
                         </td>
 
                     </tr>

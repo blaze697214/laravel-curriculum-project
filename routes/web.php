@@ -164,6 +164,12 @@ Route::middleware(['auth', 'role:cdc'])->prefix('/cdc')->name('cdc.')->group(fun
     Route::get('/schemes/{scheme}/verify/{department}/semesters/{semester}', [CDCSchemeVerificationController::class, 'semesterPreview'])
         ->name('schemes.verify.semester.preview');
 
+    Route::get('schemes/{scheme}/syllabus', [CDCSchemeVerificationController::class, 'syllabus'])
+    ->name('schemes.syllabus');
+
+    Route::get('/schemes/syllabus/{course}/preview', [CDCSchemeVerificationController::class, 'preview'])
+    ->name('schemes.syllabus.preview');
+
 });
 
 // Route::middleware(['auth', 'role:cdc-dept'])->prefix('/cdc-dept')->name('cdc-dept.')->group(function () {

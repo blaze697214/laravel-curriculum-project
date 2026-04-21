@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\ClassAwardConfiguration;
 use App\Models\CourseCategory;
+use App\Models\CourseMaster;
 use App\Models\CourseOffering;
+use App\Models\Syllabus;
 use App\Models\DepartmentCategory;
 use Illuminate\Support\Facades\DB;
 
@@ -19,6 +21,8 @@ class SchemeVerificationService
 
         $classAward = $this->checkClassAward($schemeId, $departmentId);
 
+        $syllabus = $this->checkSyllabus($schemeId);
+
         return [
             'scheme_at_glance' => $schemeAtGlance,
 
@@ -31,6 +35,8 @@ class SchemeVerificationService
             'is_complete' => $schemeAtGlance &&
                 $semesters['complete'] &&
                 $classAward,
+
+            'syllabus' => $syllabus,
         ];
     }
 
@@ -106,4 +112,22 @@ class SchemeVerificationService
 
         return $hasCompulsory || $hasElectives;
     }
+
+    private function checkSyllabus($schemeId)
+{
+    $courses = CourseMaster::where('scheme_id', $schemeId)->get();
+
+    if ($courses->isEmpty()) return false;
+
+    foreach ($courses as $course) {
+
+        $syllabus = Syllabus::where('course_master_id', $course->id)->first();
+
+        if (!$syllabus || $syllabus->status !== 'hod_approved') {
+            return false;
+        }
+    }
+
+    return true;
+}
 }

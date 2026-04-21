@@ -179,7 +179,7 @@
                         <tr class="hover:bg-gray-50">
 
                             <td class="px-4 py-2 font-medium text-left">
-                                {{ $items->first()->expert->name }}
+                                {{ $items->first()->expert->name ?? ''}}
                             </td>
 
                             <td class="px-4 py-2">
@@ -222,7 +222,7 @@
                         <tr class="hover:bg-gray-50">
 
                             <td class="px-4 py-2 font-medium text-left">
-                                {{ $items->first()->moderator->name }}
+                                {{ $items->first()->moderator->name ?? ''}}
                             </td>
 
                             <td class="px-4 py-2">

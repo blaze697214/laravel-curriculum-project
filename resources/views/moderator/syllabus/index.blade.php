@@ -72,7 +72,7 @@
                             <td class="px-6 py-4 text-center space-y-2 flex ">
 
                                 {{-- VIEW --}}
-                                <div class="flex flex-col justify-between basis-1/2">
+                                <div class="flex flex-col justify-center gap-5 basis-1/2">
                                     <a href="{{ route('moderator.syllabus.preview', $course->id) }}">
                                         <button
                                             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm">

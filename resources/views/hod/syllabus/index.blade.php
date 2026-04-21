@@ -81,7 +81,8 @@
                                 <td class="px-6 py-4 text-center space-y-2">
 
                                     {{-- VIEW --}}
-                                    @if($item['syllabus'])
+                                    <div class="flex justify-center gap-5">
+                                        @if($item['syllabus'])
                                     <a href="{{ route('hod.syllabus.preview', $course->id) }}">
                                         <button
                                             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm">
@@ -102,6 +103,7 @@
                                             </button>
                                         </form>
                                     @endif
+                                    </div>
 
                                 </td>
 

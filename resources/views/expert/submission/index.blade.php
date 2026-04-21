@@ -82,7 +82,7 @@
 
                                 @foreach($remarks as $r)
                                     <div class="bg-gray-50 p-2 rounded border text-xs">
-                                        <strong>{{ $r->givenBy->name ?? 'HOD' }}</strong><br>
+                                        {{ $r->givenBy->name ?? 'Moderator' }}<br>
                                         {{ $r->remark }}<br>
                                         <span class="text-gray-400">{{ $r->created_at }}</span>
                                     </div>
@@ -95,7 +95,7 @@
                     </td>
 
                     {{-- ACTION --}}
-                    <td class="px-6 py-4 text-center flex justify-center items-center gap-5 space-y-2">
+                    <td class="px-6 py-4 text-center flex justify-center items-center gap-5">
 
                         {{-- VIEW --}}
                         <a href="{{ route('expert.syllabus.preview', $course->id) }}">
