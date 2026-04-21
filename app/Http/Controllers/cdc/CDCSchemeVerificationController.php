@@ -77,19 +77,24 @@ class CDCSchemeVerificationController extends Controller
         return view('cdc.schemes.verify.semesters', compact('scheme', 'department', 'semesters'));
     }
 
-    public function syllabus($schemeId)
+
+public function syllabus($schemeId)
 {
     $scheme = Scheme::findOrFail($schemeId);
 
-    // 🔥 Fetch all courses at once
-    $courses = CourseMaster::with(['department'])
+    $courses = CourseMaster::with(['ownerDepartment'])
         ->where('scheme_id', $schemeId)
         ->get();
 
-    // 🔥 Fetch all syllabi in ONE query
     $syllabi = Syllabus::whereIn('course_master_id', $courses->pluck('id'))
         ->get()
         ->keyBy('course_master_id');
+
+    // Group by ALL offerings so service-owned common courses appear
+    // in the correct semester tables
+    $offerings = CourseOffering::whereIn('course_master_id', $courses->pluck('id'))
+        ->get()
+        ->groupBy('course_master_id');
 
     $grouped = [];
 
@@ -98,24 +103,31 @@ class CDCSchemeVerificationController extends Controller
         $syllabus = $syllabi[$course->id] ?? null;
 
         $item = [
-            'course' => $course,
+            'course'  => $course,
             'syllabus' => $syllabus,
-            'status' => $syllabus->status ?? 'not_created'
+            'status'  => $syllabus->status ?? 'not_created',
         ];
 
-        if ($course->department->type === 'programme') {
-            $grouped[$course->semester_no][] = $item;
+        $courseOfferings = $offerings[$course->id] ?? collect();
+
+        if ($courseOfferings->isNotEmpty()) {
+            foreach ($courseOfferings as $offering) {
+                $grouped[$offering->semester_no][] = $item;
+            }
         } else {
             $grouped['all'][] = $item;
         }
     }
 
-    return view('cdc.scheme.syllabus', compact('scheme', 'grouped'));
+    ksort($grouped);
+
+    return view('cdc.schemes.verify.syllabus.index', compact('scheme', 'grouped'));
 }
 
-public function preview($courseId)
+public function preview($schemeId,$courseId)
     {
         $course = CourseMaster::findOrFail($courseId);
+    $scheme = Scheme::findOrFail($schemeId);
 
         $syllabus = Syllabus::firstOrCreate(
             ['course_master_id' => $courseId],
@@ -203,7 +215,8 @@ public function preview($courseId)
             ->keyBy(fn ($m) => $m->course_outcome_id.'_'.$m->programme_outcome_id);
 
         return view('cdc.schemes.verify.syllabus.preview', compact(
-            'course',
+            'scheme',    
+        'course',
             'programmes',
             'sections',
             'rationale',
