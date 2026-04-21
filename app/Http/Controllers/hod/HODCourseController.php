@@ -15,6 +15,13 @@ use Illuminate\Support\Facades\DB;
 
 class HODCourseController extends Controller
 {
+
+    public function index()
+    {
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
+
+        return view('hod.courses.index', compact('scheme'));
+    }
     public function create()
     {
         $scheme = Scheme::where('is_active', true)->firstOrFail();
@@ -158,7 +165,7 @@ class HODCourseController extends Controller
 
         });
 
-        return back()->with('success', 'Course saved successfully');
+        return redirect()->route('hod.courses.index')->with('success', 'Course saved successfully');
     }
 
     // public function view()

@@ -35,7 +35,7 @@
                     <tr class="hover:bg-gray-50 border-gray-200">
 
                         <td class="px-4 py-3 ">
-                            Scheme At Glance
+                            Scheme At Glance<span class="ml-2 rounded-full bg-yellow-300 px-2 py-1 text-xs text-gray-600 font-semibold">In Development</span>
                         </td>
 
                         <td class="px-4 py-3">
@@ -76,7 +76,7 @@
                     <tr class="hover:bg-gray-50 border-gray-200">
 
                         <td class="px-4 py-3 ">
-                            Semester Tables (1–6)
+                            Semester Tables (1–6) <span class="ml-2 rounded-full bg-yellow-300 px-2 py-1 text-xs text-gray-600 font-semibold">In Development</span>
                         </td>
 
                         <td class="px-4 py-3">
@@ -110,7 +110,7 @@
                     <tr class="hover:bg-gray-50 border-gray-200">
 
                         <td class="px-4 py-3 ">
-                            Class Award
+                            Class Award<span class="ml-2 rounded-full bg-yellow-300 px-2 py-1 text-xs text-gray-600 font-semibold">In Development</span>
                         </td>
 
                         <td class="px-4 py-3">
@@ -130,7 +130,7 @@
                         <td class="px-4 py-3">
 
                             @if ($status['class_award'])
-                                <a {{-- {{ route('cdc.schemes.verify.preview.classaward', [$scheme->id, $department->id]) }} --}} href="">
+                                <a href="{{ route('cdc.schemes.verify.class-award', [$scheme->id, $department->id]) }}">
                                     <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded">
                                         View
                                     </button>

@@ -49,16 +49,19 @@
                     <h4 class="px-6 py-2 text-xs uppercase text-slate-400 mt-4">
                         Scheme Details
                     </h4>
-                    <a href="/hod/pso" class="block px-6 py-3 hover:bg-slate-800 transition">
+                <a href="/hod/pso" class="block px-6 py-3 hover:bg-slate-800 transition">
                         Programme Specific Outcome
                     </a>
+                    <a href="" class="block px-6 py-3 hover:bg-slate-800 transition">
+                        Scheme at Glance   <span class="ml-2 text-nowrap rounded-full bg-yellow-300 px-2 py-1 text-xs text-gray-600 font-semibold">In Development</span>                     
+                    </a>
 
-                    <a href="/hod/courses/create" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    <a href="/hod/courses/index" class="block px-6 py-3 hover:bg-slate-800 transition">
                         Courses
                     </a>
-                    <a href="/hod/courses/view" class="block px-6 py-3 hover:bg-slate-800 transition">
+                    {{-- <a href="/hod/courses/view" class="block px-6 py-3 hover:bg-slate-800 transition">
                         View Courses
-                    </a>
+                    </a> --}}
 
                     <a href="/hod/elective-groups" class="block px-6 py-3 hover:bg-slate-800 transition">
                         Elective Groups

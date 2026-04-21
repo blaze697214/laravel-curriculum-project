@@ -45,7 +45,7 @@
                                     @method('PATCH')
 
                                     <button type="submit"
-                                        class="px-3 py-1 rounded font-medium text-gray-800
+                                        class="px-3 py-1 rounded  text-gray-800
                                     {{ $scheme->is_active
                                         ? 'bg-green-600 text-white hover:bg-green-700'
                                         : 'bg-gray-300 text-gray-700 hover:bg-gray-400' }}">
@@ -64,7 +64,7 @@
                                     @method('PATCH')
 
                                     <button type="submit"
-                                        class="px-3 py-1 rounded font-medium text-gray-800
+                                        class="px-3 py-1 rounded  text-gray-800
                                     {{ $scheme->is_locked
                                         ? 'bg-red-600 text-white hover:bg-red-700'
                                         : 'bg-gray-300 text-gray-700 hover:bg-gray-400' }}">

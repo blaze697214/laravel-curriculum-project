@@ -74,57 +74,105 @@ class CDCSchemeVerificationController extends Controller
             ];
         }
 
-        return view('cdc.schemes.verify.semesters', compact('scheme', 'department', 'semesters'));
+        return view('cdc.schemes.verify.semesters.index', compact('scheme', 'department', 'semesters'));
     }
 
-
-public function syllabus($schemeId)
+    public function semesterPreview($schemeId, $departmentId, $semesterNo)
 {
     $scheme = Scheme::findOrFail($schemeId);
+    $department = Department::findOrFail($departmentId);
 
-    $courses = CourseMaster::with(['ownerDepartment'])
-        ->where('scheme_id', $schemeId)
+    $courses = CourseOffering::with('courseMaster')
+        ->where('department_id', $departmentId)
+        ->where('semester_no', $semesterNo)
         ->get();
 
-    $syllabi = Syllabus::whereIn('course_master_id', $courses->pluck('id'))
+    // totals
+    $totals = [
+        'th_hours' => 0,
+        'pr_hours' => 0,
+        'credits' => 0,
+        'marks' => 0
+    ];
+
+    foreach ($courses as $c) {
+
+        $cm = $c->courseMaster;
+
+        $totals['th_hours'] += $cm->th_hours ?? 0;
+        $totals['pr_hours'] += $cm->pr_hours ?? 0;
+        $totals['credits'] += $cm->credits ?? 0;
+        $totals['marks'] += $cm->total_marks ?? 0;
+    }
+
+    return view('cdc.schemes.verify.semesters.preview', compact(
+        'scheme',
+        'department',
+        'semesterNo',
+        'courses',
+        'totals'
+    ));
+}
+
+public function classAwardPreview($schemeId, $departmentId)
+{
+    $scheme = Scheme::findOrFail($schemeId);
+    $department = Department::findOrFail($departmentId);
+
+    $courses = CourseOffering::with('courseMaster')
+        ->where('department_id', $departmentId)
+        ->orderBy('semester_no')
+        ->get();
+
+    // Separate elective groups
+    $compulsory = $courses->where('is_elective', 0);
+    $electives = $courses->where('is_elective', 1);
+
+    return view('cdc.schemes.verify.class_award.preview', compact(
+        'scheme',
+        'department',
+        'compulsory',
+        'electives'
+    ));
+}
+
+
+public function syllabus(Scheme $scheme, Department $department)
+{
+    // Only courses offered to this specific department
+    $offeringsByDept = CourseOffering::with('courseMaster.ownerDepartment')
+        ->where('department_id', $department->id)
+        ->whereHas('courseMaster', fn($q) => $q->where('scheme_id', $scheme->id))
+        ->get()
+        ->groupBy('semester_no');
+
+    $courseIds = $offeringsByDept->flatten()->pluck('course_master_id')->unique();
+
+    $syllabi = Syllabus::whereIn('course_master_id', $courseIds)
         ->get()
         ->keyBy('course_master_id');
 
-    // Group by ALL offerings so service-owned common courses appear
-    // in the correct semester tables
-    $offerings = CourseOffering::whereIn('course_master_id', $courses->pluck('id'))
-        ->get()
-        ->groupBy('course_master_id');
-
     $grouped = [];
 
-    foreach ($courses as $course) {
+    foreach ($offeringsByDept as $semesterNo => $offerings) {
+        foreach ($offerings as $offering) {
+            $course   = $offering->courseMaster;
+            $syllabus = $syllabi[$course->id] ?? null;
 
-        $syllabus = $syllabi[$course->id] ?? null;
-
-        $item = [
-            'course'  => $course,
-            'syllabus' => $syllabus,
-            'status'  => $syllabus->status ?? 'not_created',
-        ];
-
-        $courseOfferings = $offerings[$course->id] ?? collect();
-
-        if ($courseOfferings->isNotEmpty()) {
-            foreach ($courseOfferings as $offering) {
-                $grouped[$offering->semester_no][] = $item;
-            }
-        } else {
-            $grouped['all'][] = $item;
+            $grouped[$semesterNo][] = [
+                'course'   => $course,
+                'syllabus' => $syllabus,
+                'status'   => $syllabus->status ?? 'not_created',
+            ];
         }
     }
 
     ksort($grouped);
 
-    return view('cdc.schemes.verify.syllabus.index', compact('scheme', 'grouped'));
+    return view('cdc.schemes.verify.syllabus.index', compact('scheme', 'department', 'grouped'));
 }
 
-public function preview($schemeId,$courseId)
+public function preview($schemeId,$department,$courseId)
     {
         $course = CourseMaster::findOrFail($courseId);
     $scheme = Scheme::findOrFail($schemeId);
@@ -215,8 +263,126 @@ public function preview($schemeId,$courseId)
             ->keyBy(fn ($m) => $m->course_outcome_id.'_'.$m->programme_outcome_id);
 
         return view('cdc.schemes.verify.syllabus.preview', compact(
-            'scheme',    
-        'course',
+            'scheme',  
+            'department',  
+            'course',
+            'programmes',
+            'sections',
+            'rationale',
+            'industrialOutcomes',
+            'courseOutcomes',
+            'units',
+            'specRows',
+            'practicals',
+            'selfLearning',
+            'tutorial',
+            'instruction',
+            'books',
+            'websites',
+            'equipments',
+            'qpp',
+            'qb',
+            'cos',
+            'pos',
+            'psos',
+            'mapping'
+        ));
+    }
+
+public function print($schemeId,$department,$courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+    $scheme = Scheme::findOrFail($schemeId);
+
+        $syllabus = Syllabus::firstOrCreate(
+            ['course_master_id' => $courseId],
+            ['rationale' => '', 'status' => 'draft', 'created_by' => Auth::id()]
+        );
+
+        // =========================
+        // PROGRAMMES
+        // =========================
+        $offerings = CourseOffering::with('department')
+            ->where('course_master_id', $course->id)
+            ->get();
+
+        $programmes = $offerings->pluck('department.abbreviation')
+            ->unique()
+            ->implode(' / ');
+
+        // =========================
+        // SERVICE (for dynamic sections)
+        // =========================
+        $service = new SyllabusProgressService($syllabus, $course);
+        $sections = $service->getAvailableSections();
+
+        // =========================
+        // FETCH ALL DATA
+        // =========================
+
+        $rationale = $syllabus->rationale;
+
+        $industrialOutcomes = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'industrial_outcome')
+            ->orderBy('order_no')
+            ->get();
+
+        $courseOutcomes = CourseOutcome::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        $units = SyllabusUnit::with(['topics.subtopics'])
+            ->where('syllabus_id', $syllabus->id)
+            ->orderBy('unit_no')
+            ->get();
+
+        $specRows = SpecificationTableRow::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        $practicals = PracticalTask::with('units')
+            ->where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        $selfLearning = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'self_learning')
+            ->get();
+
+        $tutorial = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'tutorial')
+            ->get();
+
+        $instruction = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'instructional_activity')
+            ->get();
+
+        $books = Book::where('syllabus_id', $syllabus->id)->get();
+        $websites = Website::where('syllabus_id', $syllabus->id)->get();
+        $equipments = Equipment::where('syllabus_id', $syllabus->id)->get();
+
+        $qpp = QuestionPaperProfile::where('syllabus_id', $syllabus->id)->get();
+        $qb = QuestionBit::where('syllabus_id', $syllabus->id)->get();
+
+        $cos = $courseOutcomes;
+
+        $pos = ProgrammeOutcome::where('scheme_id', $course->scheme_id)
+            ->whereNull('department_id')
+            ->where('type', 'po')
+            ->get();
+
+        $psos = ProgrammeOutcome::where('scheme_id', $course->scheme_id)
+            ->where('type', 'pso')
+            ->get();
+
+        $mapping = CoPoPsoMapping::where('syllabus_id', $syllabus->id)
+            ->get()
+            ->keyBy(fn ($m) => $m->course_outcome_id.'_'.$m->programme_outcome_id);
+
+        return view('cdc.schemes.verify.syllabus.print', compact(
+            'scheme',  
+            'department',  
+            'course',
             'programmes',
             'sections',
             'rationale',

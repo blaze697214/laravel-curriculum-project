@@ -57,17 +57,17 @@
                 <col style="width:5%">
                 <col style="width:5%">
                 <col style="width:6%">
+                <col style="width:4%">
+                <col style="width:4%">
+                <col style="width:4%">
+                <col style="width:4%">
+                <col style="width:4%">
+                <col style="width:4%">
+                <col style="width:4%">
+                <col style="width:4%">
+                <col style="width:4%">
+                <col style="width:4%">
                 <col style="width:5%">
-                <col style="width:5%">
-                <col style="width:5%">
-                <col style="width:5%">
-                <col style="width:5%">
-                <col style="width:5%">
-                <col style="width:5%">
-                <col style="width:5%">
-                <col style="width:5%">
-                <col style="width:5%">
-                <col style="width:6%">
             </colgroup>
             <thead class="bg-gray-100 font-bold">
                 <tr>

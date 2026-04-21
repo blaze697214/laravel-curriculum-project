@@ -164,11 +164,15 @@ Route::middleware(['auth', 'role:cdc'])->prefix('/cdc')->name('cdc.')->group(fun
     Route::get('/schemes/{scheme}/verify/{department}/semesters/{semester}', [CDCSchemeVerificationController::class, 'semesterPreview'])
         ->name('schemes.verify.semester.preview');
 
+    Route::get('/schemes/{scheme}/verify/{department}/class-award', [CDCSchemeVerificationController::class, 'classAwardPreview'])->name('schemes.verify.class-award');
+
     Route::get('schemes/{scheme}/verify/{department}/syllabus', [CDCSchemeVerificationController::class, 'syllabus'])
     ->name('schemes.verify.syllabus');
 
     Route::get('/schemes/{scheme}/verify/{department}/syllabus/{course}/preview', [CDCSchemeVerificationController::class, 'preview'])
     ->name('schemes.verify.syllabus.preview');
+    Route::get('/schemes/{scheme}/verify/{department}/syllabus/{course}/print', [CDCSchemeVerificationController::class, 'print'])
+    ->name('schemes.verify.syllabus.print');
 
 });
 
@@ -190,6 +194,9 @@ Route::middleware(['auth', 'role:hod', 'active.scheme'])->prefix('/hod')->name('
 
     Route::get('/courses/create', [HODCourseController::class, 'create'])
         ->name('courses.create');
+
+    Route::get('/courses/index', [HODCourseController::class, 'index'])
+        ->name('courses.index');
 
     Route::post('/courses/store', [HODCourseController::class, 'store'])
         ->name('courses.store');

@@ -22,10 +22,10 @@
                     <thead class="bg-gray-100">
                         <tr>
                             <th class="px-6 py-3 text-left font-semibold text-gray-700">Course</th>
-                            <th class="px-6 py-3 text-left font-semibold text-gray-700">Expert</th>
-                            <th class="px-6 py-3 text-center font-semibold text-gray-700">Progress</th>
-                            <th class="px-6 py-3 text-center font-semibold text-gray-700">Status</th>
-                            <th class="px-6 py-3 text-center font-semibold text-gray-700">Action</th>
+                            <th class="px-6 py-3 text-left font-semibold text-gray-700 w-50 text-wrap">Expert</th>
+                            <th class="px-6 py-3 text-center font-semibold text-gray-700 w-50">Progress</th>
+                            <th class="px-6 py-3 text-center font-semibold text-gray-700 w-50">Status</th>
+                            <th class="px-6 py-3 text-center font-semibold text-gray-700 w-20">Action</th>
                         </tr>
                     </thead>
 
