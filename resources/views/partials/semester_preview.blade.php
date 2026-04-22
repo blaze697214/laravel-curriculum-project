@@ -139,7 +139,7 @@
                         {{-- Elective group heading row --}}
                         <tr class="bg-yellow-50">
                             <td class="border border-gray-400 px-2 py-1 text-left font-semibold text-gray-700"
-                                colspan="20">
+                                colspan="24">
                                 {{ $groupLabel }} (Any one)
                             </td>
                         </tr>
