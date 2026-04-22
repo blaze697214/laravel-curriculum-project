@@ -20,7 +20,6 @@ return new class extends Migration
 
             // Unit + CO mapping
             $table->foreignId('syllabus_unit_id')
-      ->after('syllabus_id')
       ->constrained('syllabus_units')
       ->cascadeOnDelete();
 

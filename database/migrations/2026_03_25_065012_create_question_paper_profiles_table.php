@@ -20,7 +20,6 @@ return new class extends Migration
 
             // Unit + CO mapping (summary row)
             $table->foreignId('syllabus_unit_id')
-                ->after('syllabus_id')
                 ->constrained('syllabus_units')
                 ->cascadeOnDelete();
 
@@ -45,7 +44,7 @@ return new class extends Migration
             $table->timestamps();
 
             // Prevent duplicate row per unit + CO
-            $table->unique(['syllabus_id', 'unit_id']);
+            // $table->unique(['syllabus_id', 'unit_id']);
             // $table->unique(['syllabus_id', 'course_outcome_id']);
         });
     }
