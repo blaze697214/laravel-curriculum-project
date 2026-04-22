@@ -228,9 +228,11 @@
                                     @endif
                                 </td>
                                 <td class="border border-gray-400 px-2 py-1 align-top">
+                                    <ul class="list-none pl-1 list-inside mb-1 space-y-0.5">
                                     @foreach ($topics as $ti => $topic)
-                                        <p class="font-semibold mb-0.5">{{ $unit->unit_no }}.{{ $ti + 1 }}
+                                        <li><p class=" mb-0.5">{{ $unit->unit_no }}.{{ $ti + 1 }}
                                             {{ $topic->content }}</p>
+                                        </li>
                                         @if ($topic->subtopics->count())
                                             <ul class="list-disc pl-4 mb-1 space-y-0.5">
                                                 @foreach ($topic->subtopics as $sub)
@@ -238,7 +240,7 @@
                                                 @endforeach
                                             </ul>
                                         @endif
-                                    @endforeach
+                                    @endforeach</ul>
                                 </td>
                                 <td class="border border-gray-400 px-2 py-1 text-center align-top">{{ $unit->hours }}
                                 </td>

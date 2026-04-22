@@ -235,9 +235,7 @@ class EXPERTSyllabusController extends Controller
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
         // get or create syllabus
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         // fetch outcomes
         $outcomes = SyllabusListItem::where('syllabus_id', $syllabus->id)
@@ -255,9 +253,11 @@ class EXPERTSyllabusController extends Controller
 
     public function saveIndustrialOutcome(Request $request, $courseId)
     {
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->first();
+
+    if (!$syllabus) {
+        return back()->withErrors('Syllabus not found. Please visit the sections page first.');
+    }
 
         // delete old entries
         SyllabusListItem::where('syllabus_id', $syllabus->id)
@@ -286,9 +286,7 @@ class EXPERTSyllabusController extends Controller
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         $outcomes = CourseOutcome::where('syllabus_id', $syllabus->id)
             ->orderBy('order_no')
@@ -304,8 +302,8 @@ class EXPERTSyllabusController extends Controller
 
     public function saveCourseOutcome(Request $request, $courseId)
     {
-        $syllabus = Syllabus::firstOrCreate(['course_master_id' => $courseId]);
-        $items = $request->input('outcomes', []);
+$syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();        
+$items = $request->input('outcomes', []);
 
         DB::transaction(function () use ($items, $syllabus) {
 
@@ -347,9 +345,7 @@ class EXPERTSyllabusController extends Controller
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         // ── Eager load topics + subtopics in one query ──────────────────────
         $units = SyllabusUnit::where('syllabus_id', $syllabus->id)
@@ -369,7 +365,7 @@ class EXPERTSyllabusController extends Controller
 
     public function saveCourseDetails(Request $request, $courseId)
     {
-        $syllabus = Syllabus::firstOrCreate(['course_master_id' => $courseId]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
         $units = $request->input('units', []);
 
         DB::transaction(function () use ($units, $syllabus) {
@@ -482,10 +478,7 @@ class EXPERTSyllabusController extends Controller
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
-
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
         // all units
         $units = SyllabusUnit::where('syllabus_id', $syllabus->id)
             ->orderBy('order_no')
@@ -508,9 +501,7 @@ class EXPERTSyllabusController extends Controller
 
     public function saveSpecification(Request $request, $courseId)
     {
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         $course = CourseMaster::findOrFail($courseId);
 
@@ -562,9 +553,7 @@ class EXPERTSyllabusController extends Controller
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         $units = SyllabusUnit::where('syllabus_id', $syllabus->id)
             ->orderBy('order_no')
@@ -586,9 +575,7 @@ class EXPERTSyllabusController extends Controller
 
     public function savePracticals(Request $request, $courseId)
     {
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         DB::transaction(function () use ($request, $syllabus) {
 
@@ -635,9 +622,7 @@ class EXPERTSyllabusController extends Controller
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         $items = SyllabusListItem::where('syllabus_id', $syllabus->id)
             ->where('type', 'self_learning')
@@ -651,9 +636,11 @@ class EXPERTSyllabusController extends Controller
 
     public function saveSelfLearning(Request $request, $courseId)
     {
-        $syllabus = Syllabus::firstOrCreate([   // consistent with GET
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->first();
+
+    if (!$syllabus) {
+        return back()->withErrors('Syllabus not found. Please visit the sections page first.');
+    }
 
         SyllabusListItem::where('syllabus_id', $syllabus->id)
             ->where('type', 'self_learning')
@@ -680,9 +667,7 @@ class EXPERTSyllabusController extends Controller
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-        $syllabus = Syllabus::firstOrCreate(
-            ['course_master_id' => $courseId]
-        );
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         $items = SyllabusListItem::where('syllabus_id', $syllabus->id)
             ->where('type', 'tutorial')
@@ -694,10 +679,11 @@ class EXPERTSyllabusController extends Controller
 
     public function saveTutorial(Request $request, $courseId)
     {
-        // Removed hard validation so saving an empty list (all removed) still works
-        $syllabus = Syllabus::firstOrCreate([   // consistent with GET, won't 404
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->first();
+
+    if (!$syllabus) {
+        return back()->withErrors('Syllabus not found. Please visit the sections page first.');
+    }
 
         SyllabusListItem::where('syllabus_id', $syllabus->id)
             ->where('type', 'tutorial')
@@ -724,9 +710,7 @@ class EXPERTSyllabusController extends Controller
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         $items = SyllabusListItem::where('syllabus_id', $syllabus->id)
             ->where('type', 'instructional_activity')
@@ -738,9 +722,11 @@ class EXPERTSyllabusController extends Controller
 
     public function saveInstruction(Request $request, $courseId)
     {
-        $syllabus = Syllabus::firstOrCreate([    // consistent with GET, won't 404
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->first();
+
+    if (!$syllabus) {
+        return back()->withErrors('Syllabus not found. Please visit the sections page first.');
+    }
 
         SyllabusListItem::where('syllabus_id', $syllabus->id)
             ->where('type', 'instructional_activity')
@@ -765,9 +751,7 @@ class EXPERTSyllabusController extends Controller
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         $books = Book::where('syllabus_id', $syllabus->id)
             ->orderBy('order_no')
@@ -778,9 +762,7 @@ class EXPERTSyllabusController extends Controller
 
     public function saveBooks(Request $request, $courseId)
     {
-        $syllabus = Syllabus::firstOrCreate([    // consistent with GET, won't 404
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         Book::where('syllabus_id', $syllabus->id)->delete();
 
@@ -804,9 +786,7 @@ class EXPERTSyllabusController extends Controller
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-        $syllabus = Syllabus::firstOrCreate(
-            ['course_master_id' => $courseId]
-        );
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         $websites = Website::where('syllabus_id', $syllabus->id)
             ->orderBy('order_no')
@@ -843,9 +823,7 @@ class EXPERTSyllabusController extends Controller
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-        $syllabus = Syllabus::firstOrCreate(
-            ['course_master_id' => $courseId]
-        );
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         $equipments = Equipment::where('syllabus_id', $syllabus->id)
             ->orderBy('order_no')
@@ -881,9 +859,7 @@ class EXPERTSyllabusController extends Controller
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-        $syllabus = Syllabus::firstOrCreate([
-            'course_master_id' => $courseId,
-        ]);
+        $syllabus = Syllabus::where('course_master_id', $courseId)->firstOrFail();
 
         $units = SyllabusUnit::where('syllabus_id', $syllabus->id)
             ->orderBy('unit_no')
