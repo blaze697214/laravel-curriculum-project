@@ -13,7 +13,7 @@
     </h2>
 
     <div class="bg-white rounded-xl shadow overflow-hidden mb-4">
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto ">
             <table class="w-full text-sm">
 
                 <thead class="bg-gray-100 ">

@@ -25,7 +25,7 @@
                             <th class="px-6 py-3 text-left font-semibold text-gray-700 w-50 text-wrap">Expert</th>
                             <th class="px-6 py-3 text-center font-semibold text-gray-700 w-50">Progress</th>
                             <th class="px-6 py-3 text-center font-semibold text-gray-700 w-50">Status</th>
-                            <th class="px-6 py-3 text-center font-semibold text-gray-700 w-20">Action</th>
+                            <th class="px-6 py-3 text-center font-semibold text-gray-700 w-55">Action</th>
                         </tr>
                     </thead>
 
@@ -62,7 +62,7 @@
                                 {{-- STATUS --}}
                                 <td class="px-6 py-4 text-center">
                                     @php
-                                        $status = $item['status'] ; // use precomputed status
+                                        $status = $item['status']; // use precomputed status
                                         $statusClass = match ($status) {
                                             'hod_approved' => 'text-green-600',
                                             'moderator_approved' => 'text-blue-600',
@@ -82,27 +82,38 @@
 
                                     {{-- VIEW --}}
                                     <div class="flex justify-center gap-5">
-                                        @if($item['syllabus'])
-                                    <a href="{{ route('hod.syllabus.preview', $course->id) }}">
-                                        <button
-                                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm">
-                                            View
-                                        </button>
-                                    </a>
-                                    @endif
+                                        @if ($item['syllabus'])
+                                            <a href="{{ route('hod.syllabus.preview', $course->id) }}">
+                                                <button
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm">
+                                                    View
+                                                </button>
+                                            </a>
+                                        @endif
 
-                                    {{-- FINAL APPROVE --}}
-                                    @if ($item['status'] === 'moderator_approved')
-                                        <form method="POST" action="{{ route('hod.syllabus.approve', $syllabus->id) }}">
-                                            @csrf
-                                            <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
+                                        {{-- FINAL APPROVE --}}
+                                        @if ($item['status'] === 'moderator_approved')
+                                            <form method="POST"
+                                                action="{{ route('hod.syllabus.approve', $syllabus->id) }}">
+                                                @csrf
+                                                <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
 
-                                            <button type="submit"
-                                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded text-sm">
-                                                Final Approve
-                                            </button>
-                                        </form>
-                                    @endif
+                                                <button type="submit"
+                                                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded text-sm">
+                                                    Final Approve
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        @if ($item['status'] === 'hod_approved')
+                                            <a href="{{ route('hod.syllabus.print', $course->id) }}" target="_blank">
+                                                <button
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm">
+                                                    Print
+                                                </button>
+                                            </a>
+                                        @endif
+                                        
                                     </div>
 
                                 </td>

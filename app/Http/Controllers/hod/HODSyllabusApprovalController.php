@@ -218,4 +218,118 @@ public function preview($courseId)
             'mapping'
         ));
     }
+
+    public function print($courseId)
+    {
+        $course = CourseMaster::findOrFail($courseId);
+
+        $syllabus = Syllabus::firstOrCreate(
+            ['course_master_id' => $courseId],
+            ['rationale' => '', 'status' => 'draft', 'created_by' => Auth::id()]
+        );
+
+        // =========================
+        // PROGRAMMES
+        // =========================
+        $offerings = CourseOffering::with('department')
+            ->where('course_master_id', $course->id)
+            ->get();
+
+        $programmes = $offerings->pluck('department.abbreviation')
+            ->unique()
+            ->implode(' / ');
+
+        // =========================
+        // SERVICE (for dynamic sections)
+        // =========================
+        $service = new SyllabusProgressService($syllabus, $course);
+        $sections = $service->getAvailableSections();
+
+        // =========================
+        // FETCH ALL DATA
+        // =========================
+
+        $rationale = $syllabus->rationale;
+
+        $industrialOutcomes = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'industrial_outcome')
+            ->orderBy('order_no')
+            ->get();
+
+        $courseOutcomes = CourseOutcome::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        $units = SyllabusUnit::with(['topics.subtopics'])
+            ->where('syllabus_id', $syllabus->id)
+            ->orderBy('unit_no')
+            ->get();
+
+        $specRows = SpecificationTableRow::where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        $practicals = PracticalTask::with('units')
+            ->where('syllabus_id', $syllabus->id)
+            ->orderBy('order_no')
+            ->get();
+
+        $selfLearning = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'self_learning')
+            ->get();
+
+        $tutorial = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'tutorial')
+            ->get();
+
+        $instruction = SyllabusListItem::where('syllabus_id', $syllabus->id)
+            ->where('type', 'instructional_activity')
+            ->get();
+
+        $books = Book::where('syllabus_id', $syllabus->id)->get();
+        $websites = Website::where('syllabus_id', $syllabus->id)->get();
+        $equipments = Equipment::where('syllabus_id', $syllabus->id)->get();
+
+        $qpp = QuestionPaperProfile::where('syllabus_id', $syllabus->id)->get();
+        $qb = QuestionBit::where('syllabus_id', $syllabus->id)->get();
+
+        $cos = $courseOutcomes;
+
+        $pos = ProgrammeOutcome::where('scheme_id', $course->scheme_id)
+            ->whereNull('department_id')
+            ->where('type', 'po')
+            ->get();
+
+        $psos = ProgrammeOutcome::where('scheme_id', $course->scheme_id)
+            ->where('type', 'pso')
+            ->get();
+
+        $mapping = CoPoPsoMapping::where('syllabus_id', $syllabus->id)
+            ->get()
+            ->keyBy(fn ($m) => $m->course_outcome_id.'_'.$m->programme_outcome_id);
+
+        return view('hod.syllabus.print', compact(
+            'course',
+            'programmes',
+            'sections',
+            'rationale',
+            'industrialOutcomes',
+            'courseOutcomes',
+            'units',
+            'specRows',
+            'practicals',
+            'selfLearning',
+            'tutorial',
+            'instruction',
+            'books',
+            'websites',
+            'equipments',
+            'qpp',
+            'qb',
+            'cos',
+            'pos',
+            'psos',
+            'mapping'
+        ));
+    }
 }

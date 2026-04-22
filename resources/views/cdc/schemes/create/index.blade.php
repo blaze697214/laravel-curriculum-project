@@ -77,9 +77,9 @@
             Existing Schemes
         </h2>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto rounded-xl shadow">
 
-            <table class="w-full text-left border border-gray-200">
+            <table class="w-full text-left border border-gray-200 rounded-xl overflow-hidden">
 
                 <thead class="bg-gray-100">
                     <tr>

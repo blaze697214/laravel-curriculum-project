@@ -162,13 +162,13 @@
 
         <!-- BUTTON -->
         <button type="submit"
-          class="w-full h-10 bg-[#0F4C81] text-white rounded-md text-sm font-medium flex items-center justify-center gap-2 mt-6 hover:bg-[#0a3a65] active:scale-95 transition"
+          class="w-full h-10 bg-[#0F4C81] text-white rounded-md text-sm font-medium flex items-center justify-center gap-0.5 mt-6 hover:bg-[#0a3a65] active:scale-95 transition"
         >
-          <svg width="15" height="15" fill="none" stroke="white" stroke-width="2">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-            <polyline points="10 17 15 12 10 7"/>
-            <line x1="15" y1="12" x2="3" y2="12"/>
-          </svg>
+          <svg class="w-6 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H2.25" />
+</svg>
+
+          
           Sign in
         </button>
 

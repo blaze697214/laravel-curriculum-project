@@ -17,6 +17,7 @@ use App\Http\Controllers\hod\HODCourseController;
 use App\Http\Controllers\hod\HODDashBoardController;
 use App\Http\Controllers\hod\HODELectiveGroupController;
 use App\Http\Controllers\hod\HODPSOController;
+use App\Http\Controllers\hod\HODSemesterController;
 use App\Http\Controllers\hod\HODSyllabusApprovalController;
 use App\Http\Controllers\hod\HODUserController;
 use App\Http\Controllers\moderator\MODERATORDashBoardController;
@@ -163,8 +164,11 @@ Route::middleware(['auth', 'role:cdc'])->prefix('/cdc')->name('cdc.')->group(fun
 
     Route::get('/schemes/{scheme}/verify/{department}/semesters/{semester}', [CDCSchemeVerificationController::class, 'semesterPreview'])
         ->name('schemes.verify.semester.preview');
+    Route::get('/schemes/{scheme}/verify/{department}/semesters/{semester}/print', [CDCSchemeVerificationController::class, 'semesterPrint'])
+        ->name('schemes.verify.semester.print');
 
     Route::get('/schemes/{scheme}/verify/{department}/class-award', [CDCSchemeVerificationController::class, 'classAwardPreview'])->name('schemes.verify.class-award');
+    Route::get('/schemes/{scheme}/verify/{department}/class-award/print', [CDCSchemeVerificationController::class, 'classAwardPrint'])->name('schemes.verify.class-award.print');
 
     Route::get('schemes/{scheme}/verify/{department}/syllabus', [CDCSchemeVerificationController::class, 'syllabus'])
     ->name('schemes.verify.syllabus');
@@ -240,8 +244,23 @@ Route::middleware(['auth', 'role:hod', 'active.scheme'])->prefix('/hod')->name('
     Route::delete('/elective-groups/{group}', [HODELectiveGroupController::class, 'destroy'])
         ->name('elective.destroy');
 
+    Route::get('/semester-tables', [HODSemesterController::class, 'index'])
+    ->name('semesters.index');
+
+    Route::get('/semester-tables/{semester}', [HODSemesterController::class, 'preview'])
+    ->name('semesters.preview');
+
+    Route::get('/semester-tables/{semester}/print', [HODSemesterController::class, 'print'])
+    ->name('semesters.print');
+
     Route::get('/class-award', [HODClassAwardController::class, 'index'])
         ->name('class_award.index');
+
+    Route::get('/class-award/preview', [HODClassAwardController::class, 'preview'])
+        ->name('class_award.preview');
+        
+    Route::get('/class-award/print', [HODClassAwardController::class, 'print'])
+        ->name('class_award.print');
 
     Route::post('/class-award', [HODClassAwardController::class, 'store'])
         ->name('class_award.store');
@@ -260,6 +279,8 @@ Route::middleware(['auth', 'role:hod', 'active.scheme'])->prefix('/hod')->name('
 
     Route::get('/syllabus/{course}/preview', [HODSyllabusApprovalController::class, 'preview'])
         ->name('syllabus.preview');
+    Route::get('/syllabus/{course}/print', [HODSyllabusApprovalController::class, 'print'])
+        ->name('syllabus.print');
 
     Route::get('/users/moderator', [HODUserController::class, 'moderatorIndex'])->name('users.moderator.index');
 

@@ -3,30 +3,28 @@
 namespace App\Http\Controllers\cdc;
 
 use App\Http\Controllers\Controller;
-use App\Models\Department;
-use App\Models\Scheme;
-use App\Models\CourseMaster;
-use App\Models\Syllabus;
-use App\Services\SchemeVerificationService;
 use App\Models\Book;
+use App\Models\ClassAwardConfiguration;
 use App\Models\CoPoPsoMapping;
-use App\Models\CourseAssignment;
+use App\Models\CourseMaster;
 use App\Models\CourseOffering;
 use App\Models\CourseOutcome;
+use App\Models\Department;
+use App\Models\ElectiveGroup;
 use App\Models\Equipment;
 use App\Models\PracticalTask;
 use App\Models\ProgrammeOutcome;
 use App\Models\QuestionBit;
 use App\Models\QuestionPaperProfile;
+use App\Models\Scheme;
 use App\Models\SpecificationTableRow;
+use App\Models\Syllabus;
 use App\Models\SyllabusListItem;
-use App\Models\SyllabusRemark;
 use App\Models\SyllabusUnit;
 use App\Models\Website;
+use App\Services\SchemeVerificationService;
 use App\Services\SyllabusProgressService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class CDCSchemeVerificationController extends Controller
 {
@@ -78,104 +76,292 @@ class CDCSchemeVerificationController extends Controller
     }
 
     public function semesterPreview($schemeId, $departmentId, $semesterNo)
-{
-    $scheme = Scheme::findOrFail($schemeId);
-    $department = Department::findOrFail($departmentId);
+    {
+        $scheme = Scheme::findOrFail($schemeId);
+        $department = Department::findOrFail($departmentId);
 
-    $courses = CourseOffering::with('courseMaster')
-        ->where('department_id', $departmentId)
-        ->where('semester_no', $semesterNo)
-        ->get();
+        // All offerings for this dept + semester
+        $offerings = CourseOffering::with(['courseMaster.category', 'courseMaster.ownerDepartment'])
+            ->where('department_id', $departmentId)
+            ->where('semester_no', $semesterNo)
+            ->get();
 
-    // totals
-    $totals = [
-        'th_hours' => 0,
-        'pr_hours' => 0,
-        'credits' => 0,
-        'marks' => 0
-    ];
+        // Pull elective groups that belong to this dept, scheme, semester
+        $electiveGroups = ElectiveGroup::with('courses.category')
+            ->where('department_id', $departmentId)
+            ->where('scheme_id', $schemeId)
+            ->where('semester_no', $semesterNo)
+            ->get();
 
-    foreach ($courses as $c) {
+        // Build a set of course_master IDs that are inside an elective group
+        $electiveCourseIds = $electiveGroups->flatMap(fn ($g) => $g->courses->pluck('id'))->unique()->toArray();
 
-        $cm = $c->courseMaster;
+        // ── Group courses for display ──────────────────────────────────────────
+        // Key = 'compulsory' or 'elective:<GroupName>'
+        $grouped = collect();
 
-        $totals['th_hours'] += $cm->th_hours ?? 0;
-        $totals['pr_hours'] += $cm->pr_hours ?? 0;
-        $totals['credits'] += $cm->credits ?? 0;
-        $totals['marks'] += $cm->total_marks ?? 0;
-    }
-
-    return view('cdc.schemes.verify.semesters.preview', compact(
-        'scheme',
-        'department',
-        'semesterNo',
-        'courses',
-        'totals'
-    ));
-}
-
-public function classAwardPreview($schemeId, $departmentId)
-{
-    $scheme = Scheme::findOrFail($schemeId);
-    $department = Department::findOrFail($departmentId);
-
-    $courses = CourseOffering::with('courseMaster')
-        ->where('department_id', $departmentId)
-        ->orderBy('semester_no')
-        ->get();
-
-    // Separate elective groups
-    $compulsory = $courses->where('is_elective', 0);
-    $electives = $courses->where('is_elective', 1);
-
-    return view('cdc.schemes.verify.class_award.preview', compact(
-        'scheme',
-        'department',
-        'compulsory',
-        'electives'
-    ));
-}
-
-
-public function syllabus(Scheme $scheme, Department $department)
-{
-    // Only courses offered to this specific department
-    $offeringsByDept = CourseOffering::with('courseMaster.ownerDepartment')
-        ->where('department_id', $department->id)
-        ->whereHas('courseMaster', fn($q) => $q->where('scheme_id', $scheme->id))
-        ->get()
-        ->groupBy('semester_no');
-
-    $courseIds = $offeringsByDept->flatten()->pluck('course_master_id')->unique();
-
-    $syllabi = Syllabus::whereIn('course_master_id', $courseIds)
-        ->get()
-        ->keyBy('course_master_id');
-
-    $grouped = [];
-
-    foreach ($offeringsByDept as $semesterNo => $offerings) {
-        foreach ($offerings as $offering) {
-            $course   = $offering->courseMaster;
-            $syllabus = $syllabi[$course->id] ?? null;
-
-            $grouped[$semesterNo][] = [
-                'course'   => $course,
-                'syllabus' => $syllabus,
-                'status'   => $syllabus->status ?? 'not_created',
-            ];
+        // Compulsory (non-elective) courses
+        $compulsory = $offerings->filter(
+            fn ($o) => ! in_array($o->course_master_id, $electiveCourseIds)
+        );
+        if ($compulsory->isNotEmpty()) {
+            $grouped->put('compulsory', $compulsory);
         }
+
+        // Elective groups
+        foreach ($electiveGroups as $group) {
+            $groupOfferings = $offerings->filter(
+                fn ($o) => in_array($o->course_master_id, $group->courses->pluck('id')->toArray())
+            );
+
+            // If offerings found, show those; otherwise build fake wrappers from the group's courses
+            if ($groupOfferings->isNotEmpty()) {
+                $grouped->put('elective:'.$group->name, $groupOfferings);
+            } else {
+                // Build lightweight wrappers so the view has ->courseMaster
+                $fakeOfferings = $group->courses->map(function ($cm) use ($departmentId, $semesterNo) {
+                    $o = new CourseOffering;
+                    $o->course_master_id = $cm->id;
+                    $o->department_id = $departmentId;
+                    $o->semester_no = $semesterNo;
+                    $o->is_elective = true;
+                    $o->setRelation('courseMaster', $cm);
+
+                    return $o;
+                });
+                $grouped->put('elective:'.$group->name, $fakeOfferings);
+            }
+        }
+
+        // ── Course category counts (for footer) ───────────────────────────────
+        $categoryCounts = [];
+        foreach ($offerings as $o) {
+            $abbr = $o->courseMaster->category?->abbreviation ?? 'Unknown';
+            $categoryCounts[$abbr] = ($categoryCounts[$abbr] ?? 0) + 1;
+        }
+
+        return view('cdc.schemes.verify.semesters.preview', compact(
+            'scheme',
+            'department',
+            'semesterNo',
+            'grouped',
+            'categoryCounts'
+        ));
+    }
+    public function semesterPrint($schemeId, $departmentId, $semesterNo)
+    {
+        $scheme = Scheme::findOrFail($schemeId);
+        $department = Department::findOrFail($departmentId);
+
+        // All offerings for this dept + semester
+        $offerings = CourseOffering::with(['courseMaster.category', 'courseMaster.ownerDepartment'])
+            ->where('department_id', $departmentId)
+            ->where('semester_no', $semesterNo)
+            ->get();
+
+        // Pull elective groups that belong to this dept, scheme, semester
+        $electiveGroups = ElectiveGroup::with('courses.category')
+            ->where('department_id', $departmentId)
+            ->where('scheme_id', $schemeId)
+            ->where('semester_no', $semesterNo)
+            ->get();
+
+        // Build a set of course_master IDs that are inside an elective group
+        $electiveCourseIds = $electiveGroups->flatMap(fn ($g) => $g->courses->pluck('id'))->unique()->toArray();
+
+        // ── Group courses for display ──────────────────────────────────────────
+        // Key = 'compulsory' or 'elective:<GroupName>'
+        $grouped = collect();
+
+        // Compulsory (non-elective) courses
+        $compulsory = $offerings->filter(
+            fn ($o) => ! in_array($o->course_master_id, $electiveCourseIds)
+        );
+        if ($compulsory->isNotEmpty()) {
+            $grouped->put('compulsory', $compulsory);
+        }
+
+        // Elective groups
+        foreach ($electiveGroups as $group) {
+            $groupOfferings = $offerings->filter(
+                fn ($o) => in_array($o->course_master_id, $group->courses->pluck('id')->toArray())
+            );
+
+            // If offerings found, show those; otherwise build fake wrappers from the group's courses
+            if ($groupOfferings->isNotEmpty()) {
+                $grouped->put('elective:'.$group->name, $groupOfferings);
+            } else {
+                // Build lightweight wrappers so the view has ->courseMaster
+                $fakeOfferings = $group->courses->map(function ($cm) use ($departmentId, $semesterNo) {
+                    $o = new CourseOffering;
+                    $o->course_master_id = $cm->id;
+                    $o->department_id = $departmentId;
+                    $o->semester_no = $semesterNo;
+                    $o->is_elective = true;
+                    $o->setRelation('courseMaster', $cm);
+
+                    return $o;
+                });
+                $grouped->put('elective:'.$group->name, $fakeOfferings);
+            }
+        }
+
+        // ── Course category counts (for footer) ───────────────────────────────
+        $categoryCounts = [];
+        foreach ($offerings as $o) {
+            $abbr = $o->courseMaster->category?->abbreviation ?? 'Unknown';
+            $categoryCounts[$abbr] = ($categoryCounts[$abbr] ?? 0) + 1;
+        }
+
+        return view('cdc.schemes.verify.semesters.print', compact(
+            'scheme',
+            'department',
+            'semesterNo',
+            'grouped',
+            'categoryCounts'
+        ));
     }
 
-    ksort($grouped);
+    public function classAwardPreview($schemeId, $departmentId)
+    {
+        $scheme = Scheme::findOrFail($schemeId);
+        $department = Department::findOrFail($departmentId);
 
-    return view('cdc.schemes.verify.syllabus.index', compact('scheme', 'department', 'grouped'));
-}
+        // Load the ClassAwardConfiguration for this dept+scheme
+        $config = ClassAwardConfiguration::where('department_id', $departmentId)
+            ->where('scheme_id', $schemeId)
+            ->with([
+                'compulsoryCourses.category',
+                'electiveGroups.courses.category',
+            ])
+            ->first();
 
-public function preview($schemeId,$department,$courseId)
+        if (! $config) {
+            // Nothing configured yet — pass empty collections so the view still renders
+            return view('cdc.schemes.verify.class_award.preview', [
+                'scheme' => $scheme,
+                'department' => $department,
+                'compulsoryCourses' => collect(),
+                'electiveGroups' => collect(),
+            ]);
+        }
+
+        // Compulsory courses come directly from the pivot
+        // We need CourseOffering wrappers so the blade can do $offering->courseMaster
+        // But class award stores CourseMaster IDs directly, so we just use CourseMaster models.
+        $compulsoryCourses = $config->compulsoryCourses->map(function ($cm) use ($departmentId) {
+            // Wrap in a simple offering-like object so the blade ->courseMaster works
+            $o = new CourseOffering;
+            $o->course_master_id = $cm->id;
+            $o->department_id = $departmentId;
+            $o->setRelation('courseMaster', $cm);
+
+            return $o;
+        });
+
+        // Elective groups — each group has ->courses (CourseMaster collection)
+        $electiveGroups = $config->electiveGroups->map(fn ($g) => [
+            'name' => $g->name,
+            'courses' => $g->courses,         // Collection of CourseMaster models
+        ]);
+
+        return view('cdc.schemes.verify.class_award.preview', compact(
+            'scheme',
+            'department',
+            'compulsoryCourses',
+            'electiveGroups'
+        ));
+    }
+    public function classAwardPrint($schemeId, $departmentId)
+    {
+        $scheme = Scheme::findOrFail($schemeId);
+        $department = Department::findOrFail($departmentId);
+
+        // Load the ClassAwardConfiguration for this dept+scheme
+        $config = ClassAwardConfiguration::where('department_id', $departmentId)
+            ->where('scheme_id', $schemeId)
+            ->with([
+                'compulsoryCourses.category',
+                'electiveGroups.courses.category',
+            ])
+            ->first();
+
+        if (! $config) {
+            // Nothing configured yet — pass empty collections so the view still renders
+            return view('cdc.schemes.verify.class_award.print', [
+                'scheme' => $scheme,
+                'department' => $department,
+                'compulsoryCourses' => collect(),
+                'electiveGroups' => collect(),
+            ]);
+        }
+
+        // Compulsory courses come directly from the pivot
+        // We need CourseOffering wrappers so the blade can do $offering->courseMaster
+        // But class award stores CourseMaster IDs directly, so we just use CourseMaster models.
+        $compulsoryCourses = $config->compulsoryCourses->map(function ($cm) use ($departmentId) {
+            // Wrap in a simple offering-like object so the blade ->courseMaster works
+            $o = new CourseOffering;
+            $o->course_master_id = $cm->id;
+            $o->department_id = $departmentId;
+            $o->setRelation('courseMaster', $cm);
+
+            return $o;
+        });
+
+        // Elective groups — each group has ->courses (CourseMaster collection)
+        $electiveGroups = $config->electiveGroups->map(fn ($g) => [
+            'name' => $g->name,
+            'courses' => $g->courses,         // Collection of CourseMaster models
+        ]);
+
+        return view('cdc.schemes.verify.class_award.print', compact(
+            'scheme',
+            'department',
+            'compulsoryCourses',
+            'electiveGroups'
+        ));
+    }
+
+    public function syllabus(Scheme $scheme, Department $department)
+    {
+        // Only courses offered to this specific department
+        $offeringsByDept = CourseOffering::with('courseMaster.ownerDepartment')
+            ->where('department_id', $department->id)
+            ->whereHas('courseMaster', fn ($q) => $q->where('scheme_id', $scheme->id))
+            ->get()
+            ->groupBy('semester_no');
+
+        $courseIds = $offeringsByDept->flatten()->pluck('course_master_id')->unique();
+
+        $syllabi = Syllabus::whereIn('course_master_id', $courseIds)
+            ->get()
+            ->keyBy('course_master_id');
+
+        $grouped = [];
+
+        foreach ($offeringsByDept as $semesterNo => $offerings) {
+            foreach ($offerings as $offering) {
+                $course = $offering->courseMaster;
+                $syllabus = $syllabi[$course->id] ?? null;
+
+                $grouped[$semesterNo][] = [
+                    'course' => $course,
+                    'syllabus' => $syllabus,
+                    'status' => $syllabus->status ?? 'not_created',
+                ];
+            }
+        }
+
+        ksort($grouped);
+
+        return view('cdc.schemes.verify.syllabus.index', compact('scheme', 'department', 'grouped'));
+    }
+
+    public function preview($schemeId, $department, $courseId)
     {
         $course = CourseMaster::findOrFail($courseId);
-    $scheme = Scheme::findOrFail($schemeId);
+        $scheme = Scheme::findOrFail($schemeId);
 
         $syllabus = Syllabus::firstOrCreate(
             ['course_master_id' => $courseId],
@@ -263,8 +449,8 @@ public function preview($schemeId,$department,$courseId)
             ->keyBy(fn ($m) => $m->course_outcome_id.'_'.$m->programme_outcome_id);
 
         return view('cdc.schemes.verify.syllabus.preview', compact(
-            'scheme',  
-            'department',  
+            'scheme',
+            'department',
             'course',
             'programmes',
             'sections',
@@ -289,10 +475,10 @@ public function preview($schemeId,$department,$courseId)
         ));
     }
 
-public function print($schemeId,$department,$courseId)
+    public function print($schemeId, $department, $courseId)
     {
         $course = CourseMaster::findOrFail($courseId);
-    $scheme = Scheme::findOrFail($schemeId);
+        $scheme = Scheme::findOrFail($schemeId);
 
         $syllabus = Syllabus::firstOrCreate(
             ['course_master_id' => $courseId],
@@ -380,8 +566,8 @@ public function print($schemeId,$department,$courseId)
             ->keyBy(fn ($m) => $m->course_outcome_id.'_'.$m->programme_outcome_id);
 
         return view('cdc.schemes.verify.syllabus.print', compact(
-            'scheme',  
-            'department',  
+            'scheme',
+            'department',
             'course',
             'programmes',
             'sections',

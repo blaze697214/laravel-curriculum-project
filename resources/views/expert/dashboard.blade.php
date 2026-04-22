@@ -29,13 +29,15 @@
     </div>
 
     {{-- ================= COURSES TABLE ================= --}}
-    <div class="bg-white rounded-xl shadow overflow-hidden">
 
-        <div class="px-6 py-4 border-b border-gray-100">
+    <div class="px-6 py-4  border-gray-100">
             <h2 class="text-lg font-semibold text-gray-800">My Courses</h2>
         </div>
+    <div class="bg-white rounded-xl shadow overflow-hidden">
 
-        <div class="overflow-x-auto">
+        
+
+        <div class="overflow-x-auto ">
             <table class="w-full text-sm">
 
                 <thead class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">

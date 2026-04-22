@@ -66,6 +66,9 @@
                     <a href="/hod/elective-groups" class="block px-6 py-3 hover:bg-slate-800 transition">
                         Elective Groups
                     </a>
+                    <a href="{{ route('hod.semesters.index') }}" class="block px-6 py-3 hover:bg-slate-800 transition">
+                        Semester Tables
+                    </a>
 
                     <a href="/hod/class-award" class="block px-6 py-3 hover:bg-slate-800 transition">
                         Class Award Courses

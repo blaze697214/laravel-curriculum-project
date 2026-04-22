@@ -28,7 +28,7 @@
 
             
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto ">
                 <table class="w-full text-sm border-separate border-spacing-y-2">
 
                     <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">

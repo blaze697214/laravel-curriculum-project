@@ -135,23 +135,29 @@
 
         </div>
 
-
-        {{-- ================= ACTION BUTTONS ================= --}}
-        <div class="flex gap-4">
-
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
-                Save
-            </button>
-            {{-- {{ route('hod.class_award.preview') }} --}}
-            <a href="">
-                <button type="button" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded">
-                    Preview
-                </button>
-            </a>
-
-        </div>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
+            Save
+        </button>
 
     </form>
+    {{-- ================= ACTION BUTTONS ================= --}}
+    @if($status['class_award'])
+    <div class="flex gap-4 mt-3 justify-between">
+
+        <a href="{{ route('hod.class_award.preview') }}">
+            <button type="button" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded">
+                Preview
+            </button>
+        </a>
+        <a href="{{ route('hod.class_award.print') }}" target="_blank">
+            <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
+                Print
+            </button>
+        </a>
+
+    </div>
+    @endif
+
 
 
 

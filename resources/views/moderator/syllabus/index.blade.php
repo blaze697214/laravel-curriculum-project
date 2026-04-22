@@ -23,7 +23,7 @@
 
                 <tbody class="divide-y">
 
-                    @foreach ($data as $item)
+                    @forelse ($data as $item)
                         @php
                             $course = $item['course'];
                             $expert = $item['expert'];
@@ -32,7 +32,7 @@
                             $progress = $item['progress'];
                         @endphp
 
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-gray-50 border-gray-200">
 
                             {{-- COURSE --}}
                             <td class="px-6 py-4 font-medium text-gray-800">
@@ -85,7 +85,7 @@
                                         <form method="POST"
                                             action="{{ route('moderator.syllabus.approve', $syllabus->id) }}">
                                             @csrf
-                                <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
+                                            <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
 
                                             <button type="submit"
                                                 class="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded text-sm">
@@ -98,7 +98,7 @@
                                     <form method="POST" action="{{ route('moderator.syllabus.reject', $syllabus->id) }}"
                                         class="space-y-2">
                                         @csrf
-                                <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
+                                        <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
 
                                         <textarea name="remark" rows="5" placeholder="Enter remarks"
                                             class="w-full border border-gray-300 rounded px-2 py-1 text-xs"></textarea>
@@ -114,7 +114,13 @@
                     </td>
 
                     </tr>
-                    @endforeach
+                @empty
+                    <tr class="hover:bg-gray-50 border-gray-200">
+                        <td colspan="5" class="px-6 py-4 text-center space-y-2 text-gray-400 font-semibold">
+                            No Syllabus are there to review
+                        </td>
+                    </tr>
+                    @endforelse
 
                 </tbody>
 

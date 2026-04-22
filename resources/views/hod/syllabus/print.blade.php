@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{{ $department->abbreviation }}-{{ $semesterNo }}-semester</title>
+    <title>{{ $course->title }}-{{ $course->co_code }}</title>
     @vite('resources/css/app.css')
 
 </head>
@@ -23,7 +23,7 @@
             }
         }
     </style>
-    @include('partials.semester_preview')
+    @include('partials.syllabus_preview')
 </body>
 <script>
     window.onload = function() {
