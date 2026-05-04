@@ -24,7 +24,6 @@ use App\Http\Controllers\moderator\MODERATORDashBoardController;
 use App\Http\Controllers\moderator\MODERATORSyllabusApprovalController;
 use Illuminate\Support\Facades\Route;
 
-// To add role to middlware function
 
 Route::redirect('/', '/login');
 

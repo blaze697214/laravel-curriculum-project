@@ -20,7 +20,7 @@ class CDCUserController extends Controller
 
         $users = User::with(['roles', 'department'])
             ->whereHas('roles', function ($q) {
-                $q->whereIn('name', ['cdc', 'hod',/*'cdc-dept'*/]);
+                $q->whereIn('name', ['hod',/*'cdc-dept'*/]);
             })
             ->get();
 

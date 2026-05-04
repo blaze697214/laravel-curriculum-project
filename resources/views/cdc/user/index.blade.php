@@ -110,7 +110,7 @@
     <div class="bg-white p-6 rounded-xl shadow">
 
         <h2 class="text-lg font-semibold text-gray-700 mb-4">
-            CDC & HOD Users
+            HOD Users
         </h2>
 
         <div class="overflow-x-auto rounded-xl shadow">
