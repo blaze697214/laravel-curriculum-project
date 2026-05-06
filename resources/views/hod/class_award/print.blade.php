@@ -15,6 +15,7 @@
         @media print {
             @page {
                 margin: 0.35in;
+                height: 1250px;
             }
 
             body {
@@ -23,7 +24,9 @@
             }
         }
     </style>
-    @include('partials.class_award_preview')
+    <div class="-rotate-90">
+            @include('partials.class_award_preview')
+    </div>
 </body>
 <script>
     window.onload = function() {

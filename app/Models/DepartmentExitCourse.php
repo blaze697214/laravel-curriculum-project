@@ -5,22 +5,30 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DepartmentCategory extends Model
+class DepartmentExitCourse extends Model
 {
-    /** @use HasFactory<\Database\Factories\DepartmentCategoryFactory> */
+    /** @use HasFactory<\Database\Factories\DepartmentExitCourseFactory> */
     use HasFactory;
 
     protected $fillable = [
-        'course_category_id',
         'department_id',
+        'scheme_id',
+
+        'title',
+
         'courses_offered',
         'courses_to_complete',
+
         'th_hrs',
         'tu_hrs',
         'pr_hrs',
+
+        'total_hours',
+
         'credits',
         'marks',
-        'is_configured'
+
+        'order_no',
     ];
 
     /*
@@ -29,13 +37,13 @@ class DepartmentCategory extends Model
     |--------------------------------------------------------------------------
     */
 
-    public function courseCategory()
-    {
-        return $this->belongsTo(CourseCategory::class);
-    }
-
     public function department()
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function scheme()
+    {
+        return $this->belongsTo(Scheme::class);
     }
 }

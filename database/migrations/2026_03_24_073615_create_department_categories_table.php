@@ -23,9 +23,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             // Distribution details (flexible but structured)
-            $table->unsignedTinyInteger('course_offered');
-            $table->unsignedTinyInteger('compulsory_to_complete');
-            $table->unsignedTinyInteger('elective_to_complete');
+            $table->unsignedTinyInteger('courses_offered');
+            $table->unsignedTinyInteger('courses_to_complete');
 
             $table->unsignedTinyInteger('th_hrs');
             $table->unsignedTinyInteger('tu_hrs');

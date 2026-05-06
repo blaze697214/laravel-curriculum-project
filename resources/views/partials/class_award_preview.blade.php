@@ -7,8 +7,8 @@
     </div>
 
     {{-- ═══ TABLE ═══ --}}
-    <div class="bg-white shadow overflow-x-auto mb-4">
-        <table class="text-xs border-collapse" style="min-width:1200px; width:100%;">
+    <div class="bg-white shadow mb-4">
+        <table class="text-xs border-collapse" style="min-width:1200px; max-width:1201px;">
 
             {{-- ── HEADER ROW 1 ── --}}
             <thead>

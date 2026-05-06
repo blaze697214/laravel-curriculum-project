@@ -65,4 +65,9 @@ class Department extends Model
     {
         return $this->hasMany(ClassAwardConfiguration::class);
     }
+
+    public function exitCourses()
+{
+    return $this->hasMany(DepartmentExitCourse::class);
+}
 }

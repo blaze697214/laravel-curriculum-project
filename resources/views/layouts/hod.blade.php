@@ -8,6 +8,7 @@
     @vite('resources/css/app.css')
 
 </head>
+ {{-- <span class="ml-2 text-nowrap rounded-full bg-yellow-300 px-2 py-1 text-xs text-gray-600 font-semibold">In Development</span> --}}
 
 <body class=" bg-slate-100 font-sans">
 
@@ -52,8 +53,8 @@
                 <a href="/hod/pso" class="block px-6 py-3 hover:bg-slate-800 transition">
                         Programme Specific Outcome
                     </a>
-                    <a href="" class="block px-6 py-3 hover:bg-slate-800 transition">
-                        Scheme at Glance   <span class="ml-2 text-nowrap rounded-full bg-yellow-300 px-2 py-1 text-xs text-gray-600 font-semibold">In Development</span>                     
+                    <a href="/hod/scheme-at-glance" class="block px-6 py-3 hover:bg-slate-800 transition">
+                        Scheme at Glance                       
                     </a>
 
                     <a href="/hod/courses/index" class="block px-6 py-3 hover:bg-slate-800 transition">

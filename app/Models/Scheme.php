@@ -73,4 +73,9 @@ class Scheme extends Model
     {
         return $this->hasMany(ProgrammeOutcome::class);
     }
+
+    public function exitCourses()
+{
+    return $this->hasMany(DepartmentExitCourse::class);
+}
 }

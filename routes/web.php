@@ -15,6 +15,7 @@ use App\Http\Controllers\hod\HODAssignCourseController;
 use App\Http\Controllers\hod\HODClassAwardController;
 use App\Http\Controllers\hod\HODCourseController;
 use App\Http\Controllers\hod\HODDashBoardController;
+use App\Http\Controllers\hod\HODDepartmentCategoriesController;
 use App\Http\Controllers\hod\HODELectiveGroupController;
 use App\Http\Controllers\hod\HODPSOController;
 use App\Http\Controllers\hod\HODSemesterController;
@@ -194,6 +195,12 @@ Route::middleware(['auth', 'role:hod', 'active.scheme'])->prefix('/hod')->name('
 
     Route::post('/pso', [HODPSOController::class, 'savePso'])
         ->name('pso.save');
+
+    Route::get('/scheme-at-glance', [HODDepartmentCategoriesController::class, 'index'])
+    ->name('scheme.index');
+
+    Route::get('/scheme-at-glance/edit',[HODDepartmentCategoriesController::class, 'edit'])->name('scheme.edit');
+    Route::post('/scheme-at-glance/update',[HODDepartmentCategoriesController::class, 'update'])->name('scheme.update');
 
     Route::get('/courses/create', [HODCourseController::class, 'create'])
         ->name('courses.create');
