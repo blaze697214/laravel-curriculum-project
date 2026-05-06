@@ -6,10 +6,173 @@
     </h1>
 
 
-    <div class="bg-white p-6 rounded-xl shadow w-full h-60 flex justify-center items-center">
-        <div class="font-semibold text-gray-500 text-md">
-            This will contain Scheme at Glance validation
-        </div>
+    <div class="bg-white p-6 rounded-xl shadow w-full">
+        <div class="overflow-x-auto w-full">
+
+    <table class="w-full border">
+
+        <thead class="bg-gray-100">
+
+            <tr>
+
+                <th class="border p-2">
+                    Category
+                </th>
+
+                <th class="border p-2">
+                    Courses
+                </th>
+
+                <th class="border p-2">
+                    Credits
+                </th>
+
+                <th class="border p-2">
+                    Marks
+                </th>
+
+                <th class="border p-2">
+                    Hours
+                </th>
+
+                <th class="border p-2">
+                    Status
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            @foreach($validation['categories'] as $row)
+
+                <tr>
+
+                    <td class="border p-2">
+
+                        {{ $row['category']->courseCategory->code }}
+
+                    </td>
+
+                    <td class="border p-2">
+
+                        {{ $row['actual']['courses'] }}
+                        /
+                        {{ $row['target']['courses'] }}
+
+                    </td>
+
+                    <td class="border p-2">
+
+                        {{ $row['actual']['credits'] }}
+                        /
+                        {{ $row['target']['credits'] }}
+
+                    </td>
+
+                    <td class="border p-2">
+
+                        {{ $row['actual']['marks'] }}
+                        /
+                        {{ $row['target']['marks'] }}
+
+                    </td>
+
+                    <td class="border p-2">
+
+                        {{ $row['actual']['hours'] }}
+                        /
+                        {{ $row['target']['hours'] }}
+
+                    </td>
+
+                    <td class="border p-2 text-center">
+
+                        @if($row['is_valid'])
+
+                            <span class="text-green-600 font-bold">
+                                ✔
+                            </span>
+
+                        @else
+
+                            <span class="text-red-600 font-bold">
+                                ✘
+                            </span>
+
+                        @endif
+
+                    </td>
+
+                </tr>
+
+            @endforeach
+
+            {{-- OVERALL --}}
+            <tr class="bg-gray-100 font-bold">
+
+                <td class="border p-2">
+                    Overall
+                </td>
+
+                <td class="border p-2">
+
+                    {{ $validation['overall']['actual']['courses'] }}
+                    /
+                    {{ $validation['overall']['target']['courses'] }}
+
+                </td>
+
+                <td class="border p-2">
+
+                    {{ $validation['overall']['actual']['credits'] }}
+                    /
+                    {{ $validation['overall']['target']['credits'] }}
+
+                </td>
+
+                <td class="border p-2">
+
+                    {{ $validation['overall']['actual']['marks'] }}
+                    /
+                    {{ $validation['overall']['target']['marks'] }}
+
+                </td>
+
+                <td class="border p-2">
+
+                    {{ $validation['overall']['actual']['hours'] }}
+                    /
+                    {{ $validation['overall']['target']['hours'] }}
+
+                </td>
+
+                <td class="border p-2 text-center">
+
+                    @if($validation['overall']['is_valid'])
+
+                        <span class="text-green-600 font-bold">
+                            ✔
+                        </span>
+
+                    @else
+
+                        <span class="text-red-600 font-bold">
+                            ✘
+                        </span>
+
+                    @endif
+
+                </td>
+
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
     </div>
     <div class="mt-5 bg-white p-6 rounded-xl shadow w-full h-full">
         <div class="flex justify-between mb-5">
@@ -34,10 +197,89 @@
                 </button>
             </a>
         </div>
-        <div class="bg-white p-6 rounded-xl shadow w-full h-52 flex justify-center items-center">
-            <div class="font-semibold text-gray-500 text-md">
-                Batch Sumittion to CDC after Scheme at Glance validation is correct
-            </div>
+        <div class="bg-white p-6 rounded-xl shadow w-full">
+            <div class="flex flex-col items-center gap-4">
+
+    <div class="font-semibold text-gray-700 text-md">
+
+        Current Status:
+
+        @if($submission->status == 'submitted')
+
+            <span class="text-green-600">
+                Submitted to CDC
+            </span>
+
+        @else
+
+            <span class="text-red-600">
+                Not Submitted
+            </span>
+
+        @endif
+
+    </div>
+
+    {{-- SUBMIT --}}
+    {{-- @if(
+        $submission->status != 'submitted'
+        && $allValid
+    ) --}}
+
+        <form method="POST"
+              action="{{ route('hod.courses.submit') }}"
+              onsubmit="return confirm(
+                'Submit all department courses to CDC for course code allocation?'
+              )">
+            <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
+
+            @csrf
+
+            <button
+                type="submit"
+                class="bg-green-600 text-white px-5 py-3 rounded-lg">
+
+                Submit to CDC
+
+            </button>
+
+        </form>
+
+    {{-- @endif --}}
+
+    {{-- UNSUBMIT --}}
+    @if($submission->status == 'submitted')
+
+        <form method="POST"
+              action="{{ route('hod.courses.unsubmit') }}">
+            <input type="hidden" name="scheme_id" value="{{ $scheme->id }}">
+
+            @csrf
+
+            <button
+                type="submit"
+                class="bg-red-600 text-white px-5 py-2 rounded-lg">
+
+                Mark as Not Submitted
+
+            </button>
+
+        </form>
+
+    @endif
+
+    {{-- INVALID --}}
+    {{-- @if(!$allValid) --}}
+
+        <div class="text-red-500 text-sm font-medium">
+
+            All validations must be correct before submission.
+
+        </div>
+
+    {{-- @endif --}}
+
+</div>
         </div>
     </div>
 @endsection

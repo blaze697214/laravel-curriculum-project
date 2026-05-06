@@ -14,7 +14,7 @@
 
 
 
-    <div class="bg-white p-6 rounded-xl shadow">
+    <div class="bg-white p-6 rounded-xl shadow ">
 
         <div class="overflow-x-auto rounded-xl shadow">
 

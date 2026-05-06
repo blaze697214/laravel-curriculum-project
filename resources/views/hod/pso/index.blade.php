@@ -1,9 +1,9 @@
 @extends('layouts.hod')
 
 @section('content')
+<h2 class="text-2xl font-bold mb-8">Programme Specific Outcomes (PSO)</h2>
     <div class="bg-white p-6 rounded-xl shadow">
 
-        <h2 class="text-lg font-semibold mb-4">Programme Specific Outcomes (PSO)</h2>
 
         <form method="POST" action="{{ route('hod.pso.save', $scheme->id) }}">
             @csrf

@@ -27,7 +27,7 @@
                         <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Editor</th>
                         <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Credits</th>
                         <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Total Marks</th>
-                        <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Actions</th>
+                        <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center w-42">Actions</th>
                     </tr>
                 </thead>
 
@@ -42,7 +42,7 @@
 
                     <tr class="hover:bg-gray-50 border-gray-200">
 
-                        <td class="px-4 py-2">
+                        <td class="px-4 py-2 text-wrap">
                             {{ $course->title }}
                             @if($course->is_common)
                                 <span class="bg-green-200 text-green-900 text-xs ml-2 px-2 py-1 rounded-md font-semibold">Common</span>
@@ -58,9 +58,16 @@
                         </td>
 
                         <td class="px-4 py-2 text-center">
-                            <span class="px-3 py-1 bg-gray-200 text-xs font-semibold rounded-lg text-gray-600">
+                            @if($course->ownerDepartment == auth()->user()->department)
+                            <span class="px-3 py-1 bg-green-100 text-xs font-semibold rounded-lg text-green-700">
                                 {{ $course->ownerDepartment->abbreviation }}
                             </span>
+                            @else
+                            <span class="px-3 py-1 bg-red-100 text-xs font-semibold rounded-lg text-red-700">
+                                {{ $course->ownerDepartment->abbreviation }}
+                            </span>
+                            @endif
+
                         </td>
 
                         <td class="px-4 py-2 text-center">

@@ -35,7 +35,7 @@
                     <tr class="hover:bg-gray-50 border-gray-200">
 
                         <td class="px-4 py-3 ">
-                            Scheme At Glance<span class="ml-2 rounded-full bg-yellow-300 px-2 py-1 text-xs text-gray-600 font-semibold">In Development</span>
+                            Scheme At Glance
                         </td>
 
                         <td class="px-4 py-3 text-center">
@@ -55,12 +55,20 @@
                         <td class="px-4 py-3 text-center">
 
                             @if ($status['scheme_at_glance'])
-                                {{-- {{ route('cdc.schemes.verify.preview.scheme', [$scheme->id, $department->id]) }} --}}
-                                <a href="">
+                                
+                                <div class="flex justify-center gap-3">
+                                    <a href="{{ route('cdc.schemes.verify.scheme-at-glance', [$scheme->id, $department->id]) }} ">
                                     <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded">
                                         View
                                     </button>
                                 </a>
+
+                                <a href="{{ route('cdc.schemes.verify.scheme-at-glance.print', [$scheme->id, $department->id]) }}" target="_blank">
+                                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded">
+                                        Print
+                                    </button>
+                                </a>
+                                    </div>
                             @else
                                 <button class="bg-gray-300 text-gray-600 px-4 py-1 rounded cursor-not-allowed">
                                     Unavailable

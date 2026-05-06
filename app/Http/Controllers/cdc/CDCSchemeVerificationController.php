@@ -10,6 +10,8 @@ use App\Models\CourseMaster;
 use App\Models\CourseOffering;
 use App\Models\CourseOutcome;
 use App\Models\Department;
+use App\Models\DepartmentCategory;
+use App\Models\DepartmentExitCourse;
 use App\Models\ElectiveGroup;
 use App\Models\Equipment;
 use App\Models\PracticalTask;
@@ -73,6 +75,202 @@ class CDCSchemeVerificationController extends Controller
         }
 
         return view('cdc.schemes.verify.semesters.index', compact('scheme', 'department', 'semesters'));
+    }
+
+    public function schemeAtGlancePreview($schemeId, $departmentId)
+    {
+        $scheme = Scheme::findOrFail($schemeId);
+        $department = Department::findOrFail($departmentId);
+
+        $categories = DepartmentCategory::with('courseCategory')
+            ->where('department_id', $department->id)
+            ->whereHas('courseCategory', function ($q) use ($scheme) {
+
+                $q->where('scheme_id', $scheme->id);
+
+            })
+            ->get();
+
+        $exitCourses = DepartmentExitCourse::where([
+            'department_id' => $department->id,
+            'scheme_id' => $scheme->id,
+        ])
+            ->orderBy('order_no')
+            ->get();
+
+        // =========================
+        // TOTALS
+        // =========================
+
+        $totals = [
+            'offered' => 0,
+            'completed' => 0,
+            'th' => 0,
+            'tu' => 0,
+            'pr' => 0,
+            'hours' => 0,
+            'credits' => 0,
+            'marks' => 0,
+        ];
+
+        $compulsoryCompleted = 0;
+        $electiveCompleted = 0;
+
+        foreach ($categories as $row) {
+
+            $totals['offered'] += $row->courses_offered;
+            $totals['completed'] += $row->courses_to_complete;
+
+            $totals['th'] += $row->th_hrs;
+            $totals['tu'] += $row->tu_hrs;
+            $totals['pr'] += $row->pr_hrs;
+
+            $totals['hours'] += ($row->th_hrs + $row->tu_hrs + $row->pr_hrs);
+            $totals['credits'] += $row->credits;
+            $totals['marks'] += $row->marks;
+
+            // ELECTIVE
+            if ($row->courseCategory->is_elective) {
+
+                $electiveCompleted += $row->courses_to_complete;
+
+            } else {
+
+                $compulsoryCompleted += $row->courses_to_complete;
+            }
+        }
+
+        // =========================
+        // GRAND TOTALS
+        // =========================
+
+        $grand = $totals;
+
+        foreach ($exitCourses as $row) {
+
+            $grand['offered'] += $row->courses_offered ?? 0;
+            $grand['completed'] += $row->courses_to_complete ?? 0;
+
+            $grand['th'] += $row->th_hrs ?? 0;
+            $grand['tu'] += $row->tu_hrs ?? 0;
+            $grand['pr'] += $row->pr_hrs ?? 0;
+
+            $grand['hours'] += ($row->th_hrs + $row->tu_hrs + $row->pr_hrs);
+            $grand['credits'] += $row->credits ?? 0;
+            $grand['marks'] += $row->marks ?? 0;
+        }
+
+        return view(
+            'cdc.schemes.verify.department_categories.preview',
+            compact(
+                'scheme',
+                'department',
+                'categories',
+                'exitCourses',
+                'totals',
+                'grand',
+                'compulsoryCompleted',
+                'electiveCompleted'
+            )
+        );
+    }
+
+    public function schemeAtGlancePrint($schemeId, $departmentId)
+    {
+        $scheme = Scheme::findOrFail($schemeId);
+        $department = Department::findOrFail($departmentId);
+
+        $categories = DepartmentCategory::with('courseCategory')
+            ->where('department_id', $department->id)
+            ->whereHas('courseCategory', function ($q) use ($scheme) {
+
+                $q->where('scheme_id', $scheme->id);
+
+            })
+            ->get();
+
+        $exitCourses = DepartmentExitCourse::where([
+            'department_id' => $department->id,
+            'scheme_id' => $scheme->id,
+        ])
+            ->orderBy('order_no')
+            ->get();
+
+        // =========================
+        // TOTALS
+        // =========================
+
+        $totals = [
+            'offered' => 0,
+            'completed' => 0,
+            'th' => 0,
+            'tu' => 0,
+            'pr' => 0,
+            'hours' => 0,
+            'credits' => 0,
+            'marks' => 0,
+        ];
+
+        $compulsoryCompleted = 0;
+        $electiveCompleted = 0;
+
+        foreach ($categories as $row) {
+
+            $totals['offered'] += $row->courses_offered;
+            $totals['completed'] += $row->courses_to_complete;
+
+            $totals['th'] += $row->th_hrs;
+            $totals['tu'] += $row->tu_hrs;
+            $totals['pr'] += $row->pr_hrs;
+
+            $totals['hours'] += ($row->th_hrs + $row->tu_hrs + $row->pr_hrs);
+            $totals['credits'] += $row->credits;
+            $totals['marks'] += $row->marks;
+
+            // ELECTIVE
+            if ($row->courseCategory->is_elective) {
+
+                $electiveCompleted += $row->courses_to_complete;
+
+            } else {
+
+                $compulsoryCompleted += $row->courses_to_complete;
+            }
+        }
+
+        // =========================
+        // GRAND TOTALS
+        // =========================
+
+        $grand = $totals;
+
+        foreach ($exitCourses as $row) {
+
+            $grand['offered'] += $row->courses_offered ?? 0;
+            $grand['completed'] += $row->courses_to_complete ?? 0;
+
+            $grand['th'] += $row->th_hrs ?? 0;
+            $grand['tu'] += $row->tu_hrs ?? 0;
+            $grand['pr'] += $row->pr_hrs ?? 0;
+
+            $grand['hours'] += ($row->th_hrs + $row->tu_hrs + $row->pr_hrs);
+            $grand['credits'] += $row->credits ?? 0;
+            $grand['marks'] += $row->marks ?? 0;
+        }
+
+        return view(
+            'cdc.schemes.verify.department_categories.print',
+            compact(
+                'scheme',
+                'department',
+                'categories',
+                'exitCourses',
+                'totals',
+                'grand',
+                'compulsoryCompleted',
+                'electiveCompleted'
+            )
+        );
     }
 
     public function semesterPreview($schemeId, $departmentId, $semesterNo)
@@ -358,7 +556,7 @@ class CDCSchemeVerificationController extends Controller
         return view('cdc.schemes.verify.syllabus.index', compact('scheme', 'department', 'grouped'));
     }
 
-    public function preview($schemeId, $department, $courseId)
+    public function syllabusPreview($schemeId, $department, $courseId)
     {
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::findOrFail($schemeId);
@@ -475,7 +673,7 @@ class CDCSchemeVerificationController extends Controller
         ));
     }
 
-    public function print($schemeId, $department, $courseId)
+    public function syllabusPrint($schemeId, $department, $courseId)
     {
         $course = CourseMaster::findOrFail($courseId);
         $scheme = Scheme::findOrFail($schemeId);

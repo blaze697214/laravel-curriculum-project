@@ -12,14 +12,14 @@
 
         <div class="bg-white p-6 rounded-xl shadow">
             <p class="text-sm text-gray-500">Required Subjects</p>
-            <h2 class="text-2xl font-bold text-green-600">
+            <h2 class="text-2xl font-bold text-green-600" id="requiredSubjects">
                 {{ $rule->total_subjects_required ?? 0 }}
             </h2>
         </div>
 
         <div class="bg-white p-6 rounded-xl shadow">
             <p class="text-sm text-gray-500">Required Marks</p>
-            <h2 class="text-2xl font-bold text-blue-600">
+            <h2 class="text-2xl font-bold text-blue-600" id="requiredMarks">
                 {{ $rule->total_marks_required ?? 0 }}
             </h2>
         </div>
@@ -112,23 +112,23 @@
         {{-- ================= SUMMARY ================= --}}
         <div class="bg-white p-6 rounded-xl shadow">
 
-            <h3 class="text-lg font-semibold mb-4">Selection Summary</h3>
+            <h3 class="text-lg font-semibold mb-6">Selection Summary</h3>
 
             <div class="grid grid-cols-3 gap-6 text-center">
 
                 <div>
                     <p class="text-sm text-gray-500">Subjects Selected</p>
-                    <p class="text-xl font-semibold text-gray-800" id="subjectCount">0</p>
+                    <p class="text-2xl font-bold transition" id="subjectCount">0</p>
                 </div>
 
                 <div>
                     <p class="text-sm text-gray-500">Total Marks</p>
-                    <p class="text-xl font-semibold text-gray-800" id="totalMarks">0</p>
+                    <p class="text-2xl font-bold transition" id="totalMarks">0</p>
                 </div>
 
                 <div>
                     <p class="text-sm text-gray-500">Total Credits</p>
-                    <p class="text-xl font-semibold text-gray-800" id="totalCredits">0</p>
+                    <p class="text-2xl font-bold text-gray-800" id="totalCredits">0</p>
                 </div>
 
             </div>
@@ -141,21 +141,21 @@
 
     </form>
     {{-- ================= ACTION BUTTONS ================= --}}
-    @if($status['class_award'])
-    <div class="flex gap-4 mt-3 justify-between">
+    @if ($status['class_award'])
+        <div class="flex gap-4 mt-3 justify-between">
 
-        <a href="{{ route('hod.class_award.preview') }}">
-            <button type="button" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded">
-                Preview
-            </button>
-        </a>
-        <a href="{{ route('hod.class_award.print') }}" target="_blank">
-            <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
-                Print
-            </button>
-        </a>
+            <a href="{{ route('hod.class_award.preview') }}">
+                <button type="button" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded">
+                    Preview
+                </button>
+            </a>
+            <a href="{{ route('hod.class_award.print') }}" target="_blank">
+                <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
+                    Print
+                </button>
+            </a>
 
-    </div>
+        </div>
     @endif
 
 
@@ -192,6 +192,18 @@
             document.getElementById('subjectCount').innerText = subjectCount;
             document.getElementById('totalMarks').innerText = totalMarks;
             document.getElementById('totalCredits').innerText = totalCredits;
+
+            let requiredSubjects = parseInt(document.getElementById('requiredSubjects')?.innerText || 0);
+            let requiredMarks = parseInt(document.getElementById('requiredMarks')?.innerText || 0);
+
+            let subjectEl = document.getElementById('subjectCount');
+            let marksEl = document.getElementById('totalMarks');
+
+            subjectEl.classList.toggle('text-green-600', subjectCount === requiredSubjects);
+            subjectEl.classList.toggle('text-red-600', subjectCount !== requiredSubjects);
+
+            marksEl.classList.toggle('text-green-600', totalMarks === requiredMarks);
+            marksEl.classList.toggle('text-red-600', totalMarks !== requiredMarks);
         }
 
         document.querySelectorAll('input').forEach(el => {

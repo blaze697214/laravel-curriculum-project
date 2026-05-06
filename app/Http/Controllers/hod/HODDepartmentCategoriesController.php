@@ -14,272 +14,355 @@ use Illuminate\Support\Facades\DB;
 class HODDepartmentCategoriesController extends Controller
 {
     public function index()
-{
-    $department = Auth::user()->department;
+    {
+        $department = Auth::user()->department;
 
-    $scheme = Scheme::where('is_active', 1)->firstOrFail();
+        $scheme = Scheme::where('is_active', 1)->firstOrFail();
 
-    $categories = DepartmentCategory::with('courseCategory')
-    ->where('department_id', $department->id)
-    ->whereHas('courseCategory', function ($q) use ($scheme) {
+        $categories = DepartmentCategory::with('courseCategory')
+            ->where('department_id', $department->id)
+            ->whereHas('courseCategory', function ($q) use ($scheme) {
+                $q->where('scheme_id', $scheme->id);
+            })
+            ->get();
 
-        $q->where('scheme_id', $scheme->id);
+        $exitCourses = DepartmentExitCourse::where([
+            'scheme_id' => $scheme->id,
+            'department_id' => $department->id,
+        ])->orderBy('order_no')->get();
 
-    })
-    ->get();
+        $configured = $categories->count() > 0;
 
-    $exitCourses = DepartmentExitCourse::where([
-        'scheme_id' => $scheme->id,
-        'department_id' => $department->id
-    ])->get();
-
-    $configured = $categories->count() > 0;
-
-    return view(
-        'hod.department_categories.index',
-        compact(
+        return view('hod.department_categories.index', compact(
             'scheme',
             'department',
             'categories',
             'exitCourses',
             'configured'
-        )
-    );
-}
+        ));
+    }
 
-public function edit()
-{
-    $department = Auth::user()->department;
+    public function edit()
+    {
+        $department = Auth::user()->department;
 
-    $scheme = Scheme::where('is_active', 1)->firstOrFail();
+        $scheme = Scheme::where('is_active', 1)->firstOrFail();
 
-    $courseCategories = CourseCategory::where('scheme_id', $scheme->id)
-        ->orderBy('order_no')
-        ->get();
+        $courseCategories = CourseCategory::where('scheme_id', $scheme->id)
+            ->orderBy('order_no')
+            ->get();
 
-    $departmentCategories = DepartmentCategory::where('department_id', $department->id)
-        ->whereHas('courseCategory', function ($q) use ($scheme) {
-            $q->where('scheme_id', $scheme->id);
-        })
-        ->get()
-        ->keyBy('course_category_id');
+        // Keyed by course_category_id for easy lookup in blade
+        $departmentCategories = DepartmentCategory::where('department_id', $department->id)
+            ->whereHas('courseCategory', function ($q) use ($scheme) {
+                $q->where('scheme_id', $scheme->id);
+            })
+            ->get()
+            ->keyBy('course_category_id');
 
-    $exitCourses = DepartmentExitCourse::where([
-        'department_id' => $department->id,
-        'scheme_id' => $scheme->id
-    ])->get();
+        $exitCourses = DepartmentExitCourse::where([
+            'department_id' => $department->id,
+            'scheme_id' => $scheme->id,
+        ])->orderBy('order_no')->get();
 
-    return view('hod.department_categories.edit', compact(
-        'scheme',
-        'department',
-        'courseCategories',
-        'departmentCategories',
-        'exitCourses'
-    ));
-}
+        return view('hod.department_categories.edit', compact(
+            'scheme',
+            'department',
+            'courseCategories',
+            'departmentCategories',
+            'exitCourses'
+        ));
+    }
 
     public function update(Request $request)
-{
-    $department = Auth::user()->department;
+    {
+        $department = Auth::user()->department;
 
-    $scheme = Scheme::where('is_active', 1)->firstOrFail();
+        $scheme = Scheme::where('is_active', 1)->firstOrFail();
 
-    $courseCategories = CourseCategory::where('scheme_id', $scheme->id)->get();
+        $courseCategories = CourseCategory::where('scheme_id', $scheme->id)->get();
 
-    $request->validate([
-        'categories' => 'required|array',
-        'exit_courses' => 'nullable|array',
-    ]);
+        $request->validate([
+            'categories' => 'required|array',
+            'exit_courses' => 'nullable|array',
+        ]);
 
-    $totalCredits = 0;
-    $totalMarks = 0;
+        // Tally credits & marks to validate against scheme totals
+        $totalCredits = 0;
+        $totalMarks = 0;
 
-    foreach ($request->categories as $courseCategoryId => $row) {
-
-        $totalCredits += (int) ($row['total_credits'] ?? 0);
-        $totalMarks += (int) ($row['total_marks'] ?? 0);
-    }
-
-    //  VALIDATION AGAINST SCHEME
-    if ($totalCredits != $scheme->total_credits) {
-
-        return back()
-            ->withInput()
-            ->withErrors([
-                'credits' => 'Total credits must equal '.$scheme->total_credits
-            ]);
-    }
-
-    if ($totalMarks != $scheme->total_marks) {
-
-        return back()
-            ->withInput()
-            ->withErrors([
-                'marks' => 'Total marks must equal '.$scheme->total_marks
-            ]);
-    }
-
-    DB::transaction(function () use (
-        $request,
-        $department,
-        $scheme,
-        $courseCategories
-    ) {
-
-        foreach ($courseCategories as $category) {
-
-            $row = $request->categories[$category->id] ?? [];
-
-            DepartmentCategory::updateOrCreate(
-                [
-                    'department_id' => $department->id,
-                    'course_category_id' => $category->id,
-                ],
-                [
-                    'total_offered' => $row['total_offered'] ?? 0,
-                    'to_be_completed' => $row['to_be_completed'] ?? 0,
-                    'th' => $row['th'] ?? 0,
-                    'tu' => $row['tu'] ?? 0,
-                    'pr' => $row['pr'] ?? 0,
-                    'total_hours' => $row['total_hours'] ?? 0,
-                    'total_credits' => $row['total_credits'] ?? 0,
-                    'total_marks' => $row['total_marks'] ?? 0,
-                ]
-            );
+        foreach ($request->categories as $row) {
+            $totalCredits += (int) ($row['credits'] ?? 0);
+            $totalMarks += (int) ($row['marks'] ?? 0);
         }
 
-        // EXIT COURSES
-        DepartmentExitCourse::where([
-            'department_id' => $department->id,
-            'scheme_id' => $scheme->id
-        ])->delete();
+        if ($totalCredits != $scheme->total_credits) {
+            return back()->withInput()->withErrors([
+                'credits' => 'Total credits must equal '.$scheme->total_credits,
+            ]);
+        }
 
-        if ($request->exit_courses) {
+        if ($totalMarks != $scheme->total_marks) {
+            return back()->withInput()->withErrors([
+                'marks' => 'Total marks must equal '.$scheme->total_marks,
+            ]);
+        }
 
-            foreach ($request->exit_courses as $row) {
+        DB::transaction(function () use ($request, $department, $scheme, $courseCategories) {
 
-                if (
-                    empty($row['exit_name']) &&
-                    empty($row['total_credits']) &&
-                    empty($row['total_marks'])
-                ) {
-                    continue;
+            foreach ($courseCategories as $category) {
+
+                $row = $request->categories[$category->id] ?? [];
+
+                // Column names match the migration exactly
+                DepartmentCategory::updateOrCreate(
+                    [
+                        'department_id' => $department->id,
+                        'course_category_id' => $category->id,
+                    ],
+                    [
+                        'courses_offered' => $row['courses_offered'] ?? 0,
+                        'courses_to_complete' => $row['courses_to_complete'] ?? 0,
+                        'th_hrs' => $row['th_hrs'] ?? 0,
+                        'tu_hrs' => $row['tu_hrs'] ?? 0,
+                        'pr_hrs' => $row['pr_hrs'] ?? 0,
+                        'credits' => $row['credits'] ?? 0,
+                        'marks' => $row['marks'] ?? 0,
+                        'is_configured' => true,
+                    ]
+                );
+            }
+
+            // ── EXIT COURSES ──────────────────────────────────────────────────
+            DepartmentExitCourse::where([
+                'department_id' => $department->id,
+                'scheme_id' => $scheme->id,
+            ])->delete();
+
+            if ($request->exit_courses) {
+                $order = 1;
+                foreach ($request->exit_courses as $row) {
+                    // Skip completely empty rows
+                    if (empty(trim($row['title'] ?? ''))) {
+                        continue;
+                    }
+
+                    DepartmentExitCourse::create([
+                        'department_id' => $department->id,
+                        'scheme_id' => $scheme->id,
+                        'title' => $row['title'],
+                        'courses_offered' => $row['courses_offered'] ?? 0,
+                        'courses_to_complete' => $row['courses_to_complete'] ?? 0,
+                        'th_hrs' => $row['th_hrs'] ?? 0,
+                        'tu_hrs' => $row['tu_hrs'] ?? 0,
+                        'pr_hrs' => $row['pr_hrs'] ?? 0,
+                        'credits' => $row['credits'] ?? 0,
+                        'marks' => $row['marks'] ?? 0,
+                        'order_no' => $order++,
+                    ]);
                 }
+            }
+        });
 
-                DepartmentExitCourse::create([
-                    'department_id' => $department->id,
-                    'scheme_id' => $scheme->id,
-                    'exit_name' => $row['exit_name'],
-                    'total_credits' => $row['total_credits'] ?? 0,
-                    'total_marks' => $row['total_marks'] ?? 0,
-                ]);
+        return redirect()->route('hod.scheme.index')
+            ->with('success', 'Scheme At Glance updated successfully');
+    }
+
+    public function preview()
+    {
+        $department = Auth::user()->department;
+
+        $scheme = Scheme::where('is_active', 1)->firstOrFail();
+
+        $categories = DepartmentCategory::with('courseCategory')
+            ->where('department_id', $department->id)
+            ->whereHas('courseCategory', function ($q) use ($scheme) {
+
+                $q->where('scheme_id', $scheme->id);
+
+            })
+            ->get();
+
+        $exitCourses = DepartmentExitCourse::where([
+            'department_id' => $department->id,
+            'scheme_id' => $scheme->id,
+        ])
+            ->orderBy('order_no')
+            ->get();
+
+        // =========================
+        // TOTALS
+        // =========================
+
+        $totals = [
+            'offered' => 0,
+            'completed' => 0,
+            'th' => 0,
+            'tu' => 0,
+            'pr' => 0,
+            'hours' => 0,
+            'credits' => 0,
+            'marks' => 0,
+        ];
+
+        $compulsoryCompleted = 0;
+        $electiveCompleted = 0;
+
+        foreach ($categories as $row) {
+
+            $totals['offered'] += $row->courses_offered;
+            $totals['completed'] += $row->courses_to_complete;
+
+            $totals['th'] += $row->th_hrs;
+            $totals['tu'] += $row->tu_hrs;
+            $totals['pr'] += $row->pr_hrs;
+
+            $totals['hours'] += ($row->th_hrs + $row->tu_hrs + $row->pr_hrs);
+            $totals['credits'] += $row->credits;
+            $totals['marks'] += $row->marks;
+
+            // ELECTIVE
+            if ($row->courseCategory->is_elective) {
+
+                $electiveCompleted += $row->courses_to_complete;
+
+            } else {
+
+                $compulsoryCompleted += $row->courses_to_complete;
             }
         }
-    });
 
-    return redirect()
-        ->route('hod.scheme.index')
-        ->with('success', 'Scheme At Glance updated successfully');
-}
+        // =========================
+        // GRAND TOTALS
+        // =========================
 
-    // public function store(Request $request, $schemeId, $departmentId)
-    // {
+        $grand = $totals;
 
-    //     $scheme = CurriculumYears::findOrFail($schemeId);
+        foreach ($exitCourses as $row) {
 
-    //     $totalCredits = 0;
-    //     $totalMarks = 0;
+            $grand['offered'] += $row->courses_offered ?? 0;
+            $grand['completed'] += $row->courses_to_complete ?? 0;
 
-    //     foreach ($request->input('levels') as $levelId) {
+            $grand['th'] += $row->th_hrs ?? 0;
+            $grand['tu'] += $row->tu_hrs ?? 0;
+            $grand['pr'] += $row->pr_hrs ?? 0;
 
-    //         $level = Levels::findOrFail($levelId);
+            $grand['hours'] += ($row->th_hrs + $row->tu_hrs + $row->pr_hrs);
+            $grand['credits'] += $row->credits ?? 0;
+            $grand['marks'] += $row->marks ?? 0;
+        }
 
-    //         if ($level->is_audit) {
+        return view(
+            'hod.department_categories.preview',
+            compact(
+                'scheme',
+                'department',
+                'categories',
+                'exitCourses',
+                'totals',
+                'grand',
+                'compulsoryCompleted',
+                'electiveCompleted'
+            )
+        );
+    }
 
-    //             $credits = 0;
-    //             $marks = 0;
+    public function print()
+    {
+        $department = Auth::user()->department;
 
-    //         } else {
+        $scheme = Scheme::where('is_active', 1)->firstOrFail();
 
-    //             $credits = $request->credits[$levelId] ?? 0;
-    //             $marks = $request->marks[$levelId] ?? 0;
+        $categories = DepartmentCategory::with('courseCategory')
+            ->where('department_id', $department->id)
+            ->whereHas('courseCategory', function ($q) use ($scheme) {
 
-    //         }
+                $q->where('scheme_id', $scheme->id);
 
-    //         if (! $level->is_audit) {
+            })
+            ->get();
 
-    //             $totalCredits += $credits;
-    //             $totalMarks += $marks;
+        $exitCourses = DepartmentExitCourse::where([
+            'department_id' => $department->id,
+            'scheme_id' => $scheme->id,
+        ])
+            ->orderBy('order_no')
+            ->get();
 
-    //         }
+        // =========================
+        // TOTALS
+        // =========================
 
-    //         $offered = $request->courses_offered[$levelId] ?? 0;
+        $totals = [
+            'offered' => 0,
+            'completed' => 0,
+            'th' => 0,
+            'tu' => 0,
+            'pr' => 0,
+            'hours' => 0,
+            'credits' => 0,
+            'marks' => 0,
+        ];
 
-    //         $compulsory = $request->compulsory[$levelId] ?? 0;
-    //         $elective = $request->elective[$levelId] ?? 0;
+        $compulsoryCompleted = 0;
+        $electiveCompleted = 0;
 
-    //         $toBeCompleted = $compulsory + $elective;
+        foreach ($categories as $row) {
 
-    //         if ($offered < $toBeCompleted) {
+            $totals['offered'] += $row->courses_offered;
+            $totals['completed'] += $row->courses_to_complete;
 
-    //             return back()->withErrors([
-    //                 'offered' => $level->name.
-    //                 ': Course offered must be > Course to be completed(compulsory+elective)',
-    //             ])->withInput();
+            $totals['th'] += $row->th_hrs;
+            $totals['tu'] += $row->tu_hrs;
+            $totals['pr'] += $row->pr_hrs;
 
-    //         }
+            $totals['hours'] += ($row->th_hrs + $row->tu_hrs + $row->pr_hrs);
+            $totals['credits'] += $row->credits;
+            $totals['marks'] += $row->marks;
 
-    //     }
+            // ELECTIVE
+            if ($row->courseCategory->is_elective) {
 
-    //     /* Validate grand totals */
+                $electiveCompleted += $row->courses_to_complete;
 
-    //     if ($totalCredits != $scheme->total_credits) {
+            } else {
 
-    //         return back()->withErrors([
-    //             'credits' => 'Total credits must equal '.$scheme->total_credits,
-    //         ])->withInput();
+                $compulsoryCompleted += $row->courses_to_complete;
+            }
+        }
 
-    //     }
+        // =========================
+        // GRAND TOTALS
+        // =========================
 
-    //     if ($totalMarks != $scheme->total_marks) {
+        $grand = $totals;
 
-    //         return back()->withErrors([
-    //             'marks' => 'Total marks must equal '.$scheme->total_marks,
-    //         ])->withInput();
+        foreach ($exitCourses as $row) {
 
-    //     }
+            $grand['offered'] += $row->courses_offered ?? 0;
+            $grand['completed'] += $row->courses_to_complete ?? 0;
 
-    //     /* Save data */
+            $grand['th'] += $row->th_hrs ?? 0;
+            $grand['tu'] += $row->tu_hrs ?? 0;
+            $grand['pr'] += $row->pr_hrs ?? 0;
 
-    //     foreach ($request->levels as $levelId) {
+            $grand['hours'] += ($row->th_hrs + $row->tu_hrs + $row->pr_hrs);
+            $grand['credits'] += $row->credits ?? 0;
+            $grand['marks'] += $row->marks ?? 0;
+        }
 
-    //         DepartmentLevelDetail::updateOrCreate(
-
-    //             [
-    //                 'department_id' => $departmentId,
-    //                 'level_id' => $levelId,
-    //             ],
-
-    //             [
-    //                 'courses_offered' => $request->courses_offered[$levelId],
-    //                 'compulsory_to_complete' => $request->compulsory[$levelId],
-    //                 'elective_to_complete' => $request->elective[$levelId] ?? 0,
-    //                 'th_hrs' => $request->th[$levelId] ?? 0,
-    //                 'tu_hrs' => $request->tu[$levelId] ?? 0,
-    //                 'pr_hrs' => $request->pr[$levelId] ?? 0,
-    //                 'credits' => $request->credits[$levelId] ?? 0,
-    //                 'marks' => $request->marks[$levelId] ?? 0,
-    //                 'is_configured' => 1,
-    //             ]
-
-    //         );
-
-    //     }
-
-    //     return redirect()->route(
-    //         'cdc.schemes.departmentLevels.preview',
-    //         [$schemeId, $departmentId]
-    //     );
-
-    // }
+        return view(
+            'hod.department_categories.print',
+            compact(
+                'scheme',
+                'department',
+                'categories',
+                'exitCourses',
+                'totals',
+                'grand',
+                'compulsoryCompleted',
+                'electiveCompleted'
+            )
+        );
+    }
 }

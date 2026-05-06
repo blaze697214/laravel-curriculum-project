@@ -8,20 +8,91 @@ use App\Models\CourseDepartmentUsage;
 use App\Models\CourseMaster;
 use App\Models\CourseOffering;
 use App\Models\Department;
+use App\Models\DepartmentCategory;
+use App\Models\DepartmentCourseStatus;
 use App\Models\Scheme;
+use App\Services\SchemeAtGlanceValidationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class HODCourseController extends Controller
 {
+    public function index(
+    SchemeAtGlanceValidationService $service
+)
+{
+    $department = Auth::user()->department;
 
-    public function index()
-    {
-        $scheme = Scheme::where('is_active', true)->firstOrFail();
+    $scheme = Scheme::where('is_active', 1)->first();
 
-        return view('hod.courses.index', compact('scheme'));
-    }
+    $validation = $service->validate(
+        $scheme->id,
+        $department->id
+    );
+
+    $submission = DepartmentCourseStatus::firstOrCreate(
+        [
+            'department_id' => $department->id,
+            'scheme_id' => $scheme->id,
+        ],
+        [
+            'status' => 'not_submitted'
+        ]
+    );
+
+    return view(
+        'hod.courses.index',
+        compact(
+            'validation',
+            'submission',
+            'scheme'
+        )
+    );
+}
+
+    public function submitToCDC()
+{
+    $department = Auth::user()->department;
+
+    $scheme = Scheme::where('is_active', 1)->first();
+
+    $status = DepartmentCourseStatus::where([
+        'department_id' => $department->id,
+        'scheme_id' => $scheme->id,
+    ])->firstOrFail();
+
+    $status->update([
+        'status' => 'submitted'
+    ]);
+
+    return back()->with(
+        'success',
+        'Courses submitted to CDC successfully'
+    );
+}
+
+public function unsubmitFromCDC()
+{
+    $department = Auth::user()->department;
+
+    $scheme = Scheme::where('is_active', 1)->first();
+
+    $status = DepartmentCourseStatus::where([
+        'department_id' => $department->id,
+        'scheme_id' => $scheme->id,
+    ])->firstOrFail();
+
+    $status->update([
+        'status' => 'not_submitted'
+    ]);
+
+    return back()->with(
+        'success',
+        'Submission reverted successfully'
+    );
+}
+
     public function create()
     {
         $scheme = Scheme::where('is_active', true)->firstOrFail();
@@ -182,28 +253,28 @@ class HODCourseController extends Controller
     // }
 
     public function view()
-{
-    $scheme = Scheme::where('is_active', true)->firstOrFail();
-    $department = Auth::user()->department;
+    {
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
+        $department = Auth::user()->department;
 
-    if ($department->type === 'service') {
+        if ($department->type === 'service') {
 
-        $ownedCourses = CourseMaster::where('owner_department_id', $department->id)
-            ->where('scheme_id', $scheme->id)
-            ->get();
+            $ownedCourses = CourseMaster::where('owner_department_id', $department->id)
+                ->where('scheme_id', $scheme->id)
+                ->get();
 
-        return view('hod.courses.view', compact('ownedCourses', 'scheme'));
+            return view('hod.courses.view', compact('ownedCourses', 'scheme'));
 
-    } else {
+        } else {
 
-        $offerings = CourseOffering::with('courseMaster')
-            ->where('department_id', $department->id)
-            ->get()
-            ->groupBy('semester_no');
+            $offerings = CourseOffering::with('courseMaster')
+                ->where('department_id', $department->id)
+                ->get()
+                ->groupBy('semester_no');
 
-        return view('hod.courses.view', compact('offerings', 'scheme'));
+            return view('hod.courses.view', compact('offerings', 'scheme'));
+        }
     }
-}
 
     public function destroy(CourseOffering $offering)
     {
@@ -341,61 +412,61 @@ class HODCourseController extends Controller
     }
 
     public function commonEdit(CourseMaster $course)
-{
-    $scheme = Scheme::where('is_active', true)->firstOrFail();
+    {
+        $scheme = Scheme::where('is_active', true)->firstOrFail();
 
-    $categories = CourseCategory::where('scheme_id', $course->scheme_id)->get();
+        $categories = CourseCategory::where('scheme_id', $course->scheme_id)->get();
 
-    $electiveCategories = CourseCategory::where('scheme_id', $scheme->id)
-        ->where('is_elective', true)
-        ->pluck('id');
+        $electiveCategories = CourseCategory::where('scheme_id', $scheme->id)
+            ->where('is_elective', true)
+            ->pluck('id');
 
-    $isOwner = true;
+        $isOwner = true;
 
-    return view('hod.courses.edit', compact(
-        'scheme', 'course', 'categories', 'electiveCategories','isOwner'
-    ));
-}
+        return view('hod.courses.edit', compact(
+            'scheme', 'course', 'categories', 'electiveCategories', 'isOwner'
+        ));
+    }
 
-public function commonUpdate(Request $request, CourseMaster $course)
-{
-    $request->validate([
-        'title'        => 'required|string',
-        'abbreviation' => 'required|string',
-        'category_id'  => 'required',
-        'credits'      => 'required|integer',
-        'total_marks'  => 'required|integer',
-    ]);
+    public function commonUpdate(Request $request, CourseMaster $course)
+    {
+        $request->validate([
+            'title' => 'required|string',
+            'abbreviation' => 'required|string',
+            'category_id' => 'required',
+            'credits' => 'required|integer',
+            'total_marks' => 'required|integer',
+        ]);
 
-    $course->update([
-        'title'             => $request->title,
-        'abbreviation'      => $request->abbreviation,
-        'course_category_id'=> $request->category_id,
-        'iks_hours'         => $request->iks_hours ?? 0,
-        'cl_hours'          => $request->cl_hours ?? 0,
-        'tl_hours'          => $request->tl_hours ?? 0,
-        'll_hours'          => $request->ll_hours ?? 0,
-        'sla_hours'         => $request->sla_hours ?? 0,
-        'credits'           => $request->credits,
-        'paper_duration'    => $request->paper_duration ?? 0,
-        'fa_th'             => $request->fa_th ?? 0,
-        'sa_th'             => $request->sa_th ?? 0,
-        'fa_pr'             => $request->fa_pr ?? 0,
-        'sa_pr'             => $request->sa_pr ?? 0,
-        'sla_marks'         => $request->sla_marks ?? 0,
-        'total_marks'       => $request->total_marks,
-    ]);
+        $course->update([
+            'title' => $request->title,
+            'abbreviation' => $request->abbreviation,
+            'course_category_id' => $request->category_id,
+            'iks_hours' => $request->iks_hours ?? 0,
+            'cl_hours' => $request->cl_hours ?? 0,
+            'tl_hours' => $request->tl_hours ?? 0,
+            'll_hours' => $request->ll_hours ?? 0,
+            'sla_hours' => $request->sla_hours ?? 0,
+            'credits' => $request->credits,
+            'paper_duration' => $request->paper_duration ?? 0,
+            'fa_th' => $request->fa_th ?? 0,
+            'sa_th' => $request->sa_th ?? 0,
+            'fa_pr' => $request->fa_pr ?? 0,
+            'sa_pr' => $request->sa_pr ?? 0,
+            'sla_marks' => $request->sla_marks ?? 0,
+            'total_marks' => $request->total_marks,
+        ]);
 
-    return redirect()->route('hod.courses.view')->with('success', 'Course updated successfully');
-}
+        return redirect()->route('hod.courses.view')->with('success', 'Course updated successfully');
+    }
 
-public function commonDestroy(CourseMaster $course)
-{
-    // delete all usages and offerings first, then master
-    CourseDepartmentUsage::where('course_master_id', $course->id)->delete();
-    CourseOffering::where('course_master_id', $course->id)->delete();
-    $course->delete();
+    public function commonDestroy(CourseMaster $course)
+    {
+        // delete all usages and offerings first, then master
+        CourseDepartmentUsage::where('course_master_id', $course->id)->delete();
+        CourseOffering::where('course_master_id', $course->id)->delete();
+        $course->delete();
 
-    return redirect()->route('hod.courses.view')->with('success', 'Course deleted successfully');
-}
+        return redirect()->route('hod.courses.view')->with('success', 'Course deleted successfully');
+    }
 }

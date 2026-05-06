@@ -9,8 +9,8 @@ use App\Http\Controllers\cdc\CDCSchemeVerificationController;
 use App\Http\Controllers\cdc\CDCUserController;
 // use App\Http\Controllers\cdc_dept\CDCDEPTDashBoardController;
 use App\Http\Controllers\expert\EXPERTDashBoardController;
-use App\Http\Controllers\expert\EXPERTSyllabusSubmissionController;
 use App\Http\Controllers\expert\EXPERTSyllabusController;
+use App\Http\Controllers\expert\EXPERTSyllabusSubmissionController;
 use App\Http\Controllers\hod\HODAssignCourseController;
 use App\Http\Controllers\hod\HODClassAwardController;
 use App\Http\Controllers\hod\HODCourseController;
@@ -24,7 +24,6 @@ use App\Http\Controllers\hod\HODUserController;
 use App\Http\Controllers\moderator\MODERATORDashBoardController;
 use App\Http\Controllers\moderator\MODERATORSyllabusApprovalController;
 use Illuminate\Support\Facades\Route;
-
 
 Route::redirect('/', '/login');
 
@@ -170,13 +169,17 @@ Route::middleware(['auth', 'role:cdc'])->prefix('/cdc')->name('cdc.')->group(fun
     Route::get('/schemes/{scheme}/verify/{department}/class-award', [CDCSchemeVerificationController::class, 'classAwardPreview'])->name('schemes.verify.class-award');
     Route::get('/schemes/{scheme}/verify/{department}/class-award/print', [CDCSchemeVerificationController::class, 'classAwardPrint'])->name('schemes.verify.class-award.print');
 
-    Route::get('schemes/{scheme}/verify/{department}/syllabus', [CDCSchemeVerificationController::class, 'syllabus'])
-    ->name('schemes.verify.syllabus');
+    Route::get('/schemes/{scheme}/verify/{department}/scheme-at-glance', [CDCSchemeVerificationController::class, 'schemeAtGlancePreview'])->name('schemes.verify.scheme-at-glance');
 
-    Route::get('/schemes/{scheme}/verify/{department}/syllabus/{course}/preview', [CDCSchemeVerificationController::class, 'preview'])
-    ->name('schemes.verify.syllabus.preview');
-    Route::get('/schemes/{scheme}/verify/{department}/syllabus/{course}/print', [CDCSchemeVerificationController::class, 'print'])
-    ->name('schemes.verify.syllabus.print');
+    Route::get('/schemes/{scheme}/verify/{department}/scheme-at-glance/print', [CDCSchemeVerificationController::class, 'schemeAtGlancePrint'])->name('schemes.verify.scheme-at-glance.print');
+
+    Route::get('schemes/{scheme}/verify/{department}/syllabus', [CDCSchemeVerificationController::class, 'syllabus'])
+        ->name('schemes.verify.syllabus');
+
+    Route::get('/schemes/{scheme}/verify/{department}/syllabus/{course}/preview', [CDCSchemeVerificationController::class, 'syllabusPreview'])
+        ->name('schemes.verify.syllabus.preview');
+    Route::get('/schemes/{scheme}/verify/{department}/syllabus/{course}/print', [CDCSchemeVerificationController::class, 'syllabusPrint'])
+        ->name('schemes.verify.syllabus.print');
 
 });
 
@@ -197,16 +200,25 @@ Route::middleware(['auth', 'role:hod', 'active.scheme'])->prefix('/hod')->name('
         ->name('pso.save');
 
     Route::get('/scheme-at-glance', [HODDepartmentCategoriesController::class, 'index'])
-    ->name('scheme.index');
+        ->name('scheme.index');
 
-    Route::get('/scheme-at-glance/edit',[HODDepartmentCategoriesController::class, 'edit'])->name('scheme.edit');
-    Route::post('/scheme-at-glance/update',[HODDepartmentCategoriesController::class, 'update'])->name('scheme.update');
+    Route::get('/scheme-at-glance/edit', [HODDepartmentCategoriesController::class, 'edit'])->name('scheme.edit');
+
+    Route::post('/scheme-at-glance/update', [HODDepartmentCategoriesController::class, 'update'])->name('scheme.update');
+
+    Route::get('/scheme-at-glance/preview', [HODDepartmentCategoriesController::class, 'preview'])->name('scheme.preview');
+
+    Route::get('/scheme-at-glance/print', [HODDepartmentCategoriesController::class, 'print'])->name('scheme.print');
 
     Route::get('/courses/create', [HODCourseController::class, 'create'])
         ->name('courses.create');
 
     Route::get('/courses/index', [HODCourseController::class, 'index'])
         ->name('courses.index');
+
+    Route::post('/courses/submit',[HODCourseController::class, 'submitToCDC'])->name('courses.submit');
+
+    Route::post('/hod/courses/unsubmit',[HODCourseController::class, 'unsubmitFromCDC'])->name('courses.unsubmit');
 
     Route::post('/courses/store', [HODCourseController::class, 'store'])
         ->name('courses.store');
@@ -251,20 +263,20 @@ Route::middleware(['auth', 'role:hod', 'active.scheme'])->prefix('/hod')->name('
         ->name('elective.destroy');
 
     Route::get('/semester-tables', [HODSemesterController::class, 'index'])
-    ->name('semesters.index');
+        ->name('semesters.index');
 
     Route::get('/semester-tables/{semester}', [HODSemesterController::class, 'preview'])
-    ->name('semesters.preview');
+        ->name('semesters.preview');
 
     Route::get('/semester-tables/{semester}/print', [HODSemesterController::class, 'print'])
-    ->name('semesters.print');
+        ->name('semesters.print');
 
     Route::get('/class-award', [HODClassAwardController::class, 'index'])
         ->name('class_award.index');
 
     Route::get('/class-award/preview', [HODClassAwardController::class, 'preview'])
         ->name('class_award.preview');
-        
+
     Route::get('/class-award/print', [HODClassAwardController::class, 'print'])
         ->name('class_award.print');
 
@@ -311,16 +323,16 @@ Route::middleware(['auth', 'role:moderator'])->prefix('/moderator')->name('moder
     Route::get('/dashboard', [MODERATORDashBoardController::class, 'dashboard']);
 
     Route::get('/syllabus', [MODERATORSyllabusApprovalController::class, 'index'])
-    ->name('syllabus.index');
+        ->name('syllabus.index');
 
-Route::post('/syllabus/{syllabus}/approve', [MODERATORSyllabusApprovalController::class, 'approve'])
-    ->name('syllabus.approve');
+    Route::post('/syllabus/{syllabus}/approve', [MODERATORSyllabusApprovalController::class, 'approve'])
+        ->name('syllabus.approve');
 
-Route::post('/syllabus/{syllabus}/reject', [MODERATORSyllabusApprovalController::class, 'reject'])
-    ->name('syllabus.reject');
+    Route::post('/syllabus/{syllabus}/reject', [MODERATORSyllabusApprovalController::class, 'reject'])
+        ->name('syllabus.reject');
 
-Route::get('/syllabus/{course}/preview', [MODERATORSyllabusApprovalController::class, 'preview'])
-    ->name('syllabus.preview');
+    Route::get('/syllabus/{course}/preview', [MODERATORSyllabusApprovalController::class, 'preview'])
+        ->name('syllabus.preview');
 
 });
 
