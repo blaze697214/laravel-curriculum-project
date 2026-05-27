@@ -8,7 +8,6 @@ use App\Models\CourseDepartmentUsage;
 use App\Models\CourseMaster;
 use App\Models\CourseOffering;
 use App\Models\Department;
-use App\Models\DepartmentCategory;
 use App\Models\DepartmentCourseStatus;
 use App\Models\Scheme;
 use App\Services\SchemeAtGlanceValidationService;
@@ -18,80 +17,85 @@ use Illuminate\Support\Facades\DB;
 
 class HODCourseController extends Controller
 {
-    public function index(
-    SchemeAtGlanceValidationService $service
-)
-{
-    $department = Auth::user()->department;
+    public function index(SchemeAtGlanceValidationService $service) {
+        $department = Auth::user()->department;
 
-    $scheme = Scheme::where('is_active', 1)->first();
+        $scheme = Scheme::where('is_active', 1)->first();
 
-    $validation = $service->validate(
-        $scheme->id,
-        $department->id
-    );
+        $validation = $service->validate(
+            $scheme->id,
+            $department->id
+        );
 
-    $submission = DepartmentCourseStatus::firstOrCreate(
-        [
+        $submission = DepartmentCourseStatus::firstOrCreate(
+            [
+                'department_id' => $department->id,
+                'scheme_id' => $scheme->id,
+            ],
+            [
+                'status' => 'not_submitted',
+            ]
+        );
+
+        return view(
+            'hod.courses.index',
+            compact(
+                'validation',
+                'submission',
+                'scheme'
+            )
+        );
+    }
+
+    public function submitToCDC( SchemeAtGlanceValidationService $service)
+    {
+        $department = Auth::user()->department;
+
+        $scheme = Scheme::where('is_active', 1)->first();
+
+        $valid = $service->validate($scheme->id,$department->id);
+        if(!$valid['overall']['validations']['courses']){
+            return back()->withErrors(
+               'The number of courses added is not according to Scheme at Glance'
+            );
+        }
+
+
+        $status = DepartmentCourseStatus::where([
             'department_id' => $department->id,
             'scheme_id' => $scheme->id,
-        ],
-        [
-            'status' => 'not_submitted'
-        ]
-    );
+        ])->firstOrFail();
 
-    return view(
-        'hod.courses.index',
-        compact(
-            'validation',
-            'submission',
-            'scheme'
-        )
-    );
-}
+        $status->update([
+            'is_submitted_to_cdc' => true,
+        ]);
 
-    public function submitToCDC()
-{
-    $department = Auth::user()->department;
+        return back()->with(
+            'success',
+            'Courses submitted to CDC successfully'
+        );
+    }
 
-    $scheme = Scheme::where('is_active', 1)->first();
+    public function unsubmitFromCDC()
+    {
+        $department = Auth::user()->department;
 
-    $status = DepartmentCourseStatus::where([
-        'department_id' => $department->id,
-        'scheme_id' => $scheme->id,
-    ])->firstOrFail();
+        $scheme = Scheme::where('is_active', 1)->first();
 
-    $status->update([
-        'status' => 'submitted'
-    ]);
+        $status = DepartmentCourseStatus::where([
+            'department_id' => $department->id,
+            'scheme_id' => $scheme->id,
+        ])->firstOrFail();
 
-    return back()->with(
-        'success',
-        'Courses submitted to CDC successfully'
-    );
-}
+        $status->update([
+            'is_submitted_to_cdc' => false,
+        ]);
 
-public function unsubmitFromCDC()
-{
-    $department = Auth::user()->department;
-
-    $scheme = Scheme::where('is_active', 1)->first();
-
-    $status = DepartmentCourseStatus::where([
-        'department_id' => $department->id,
-        'scheme_id' => $scheme->id,
-    ])->firstOrFail();
-
-    $status->update([
-        'status' => 'not_submitted'
-    ]);
-
-    return back()->with(
-        'success',
-        'Submission reverted successfully'
-    );
-}
+        return back()->with(
+            'success',
+            'Submission reverted successfully'
+        );
+    }
 
     public function create()
     {

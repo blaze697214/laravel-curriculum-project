@@ -95,18 +95,22 @@ class HODDepartmentCategoriesController extends Controller
             $totalCredits += (int) ($row['credits'] ?? 0);
             $totalMarks += (int) ($row['marks'] ?? 0);
         }
+        //*************************************************************************** */
+        //*************************************************************************** */
+        //
+        // if ($totalCredits != $scheme->total_credits) {
+        //     return back()->withInput()->withErrors([
+        //         'credits' => 'Total credits must equal '.$scheme->total_credits,
+        //     ]);
+        // }
 
-        if ($totalCredits != $scheme->total_credits) {
-            return back()->withInput()->withErrors([
-                'credits' => 'Total credits must equal '.$scheme->total_credits,
-            ]);
-        }
-
-        if ($totalMarks != $scheme->total_marks) {
-            return back()->withInput()->withErrors([
-                'marks' => 'Total marks must equal '.$scheme->total_marks,
-            ]);
-        }
+        // if ($totalMarks != $scheme->total_marks) {
+        //     return back()->withInput()->withErrors([
+        //         'marks' => 'Total marks must equal '.$scheme->total_marks,
+        //     ]);
+        // }
+        //**************************************************************************** */
+        //**************************************************************************** */
 
         DB::transaction(function () use ($request, $department, $scheme, $courseCategories) {
 

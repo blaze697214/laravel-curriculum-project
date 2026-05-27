@@ -362,7 +362,7 @@
                     abbrInput.value = c.abbreviation;
 
                     document.getElementById('category_id').value = c.course_category_id;
-
+                    toggleElective();
                     document.getElementById('iks_hours').value = c.iks_hours;
                     document.getElementById('cl_hours').value = c.cl_hours;
                     document.getElementById('tl_hours').value = c.tl_hours;

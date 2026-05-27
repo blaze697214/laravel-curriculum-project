@@ -24,6 +24,7 @@
                     <tr>
                         <th class="px-4 py-2 text-sm font-semibold text-gray-600 w-150">Title</th>
                         <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Abbrev</th>
+                        <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Course Category</th>
                         <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Editor</th>
                         <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Credits</th>
                         <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Total Marks</th>
@@ -50,11 +51,14 @@
                             @if($offering->is_elective)
                                 <span class="bg-purple-200 text-purple-900 text-xs ml-2 px-2 py-1 rounded font-semibold">Elective</span>
                             @endif
-                            
+
                         </td>
 
                         <td class="px-4 py-2 text-center">
                             {{ $course->abbreviation }}
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                            {{ $course->category->abbreviation ?? ''}}
                         </td>
 
                         <td class="px-4 py-2 text-center">
@@ -132,20 +136,22 @@
     <table class="w-full text-left border border-gray-200">
         <thead class="bg-gray-100">
             <tr>
-                <th class="px-4 py-2 text-sm font-semibold text-gray-600">Title</th>
-                <th class="px-4 py-2 text-sm font-semibold text-gray-600">Abbrev</th>
-                <th class="px-4 py-2 text-sm font-semibold text-gray-600">Credits</th>
-                <th class="px-4 py-2 text-sm font-semibold text-gray-600">Total Marks</th>
-                <th class="px-4 py-2 text-sm font-semibold text-gray-600">Actions</th>
+                <th class="px-4 py-2 text-sm font-semibold text-gray-600 w-150">Title</th>
+                <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Abbrev</th>
+                <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center text-wrap">Course Category</th>
+                <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Credits</th>
+                <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Total Marks</th>
+                <th class="px-4 py-2 text-sm font-semibold text-gray-600 text-center">Actions</th>
             </tr>
         </thead>
         <tbody class="divide-y">
         @forelse($ownedCourses as $course)
-            <tr class="hover:bg-gray-50 border-gray-200">
+            <tr class="hover:bg-gray-50 border-gray-200 ">
                 <td class="px-4 py-2">{{ $course->title }}</td>
                 <td class="px-4 py-2">{{ $course->abbreviation }}</td>
-                <td class="px-4 py-2">{{ $course->credits }}</td>
-                <td class="px-4 py-2">{{ $course->total_marks }}</td>
+                <td class="px-4 py-2 text-center">{{ $course->category->abbreviation }}</td>
+                <td class="px-4 py-2 text-center">{{ $course->credits }}</td>
+                <td class="px-4 py-2 text-center">{{ $course->total_marks }}</td>
                 <td class="px-4 py-2 flex gap-2">
                     <a href="{{ route('hod.courses.common.edit', $course->id) }}">
                         <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">Edit</button>
